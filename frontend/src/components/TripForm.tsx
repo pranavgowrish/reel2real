@@ -52,13 +52,15 @@ export const TripForm = () => {
     );
   };
 
-  const handlePlanTrip = () => {
+  const handlePlanTrip = async () => {
     const tripData = {
       location,
       vibes: selectedVibes,
       days,
       budget: budget[0],
     };
+    // FIX API: Call Flask endpoint POST /api/generate-itinerary with tripData
+    // Expected response: { itinerary, venues, images, coordinates, etc. }
     // Store in sessionStorage for the loading page
     sessionStorage.setItem("tripData", JSON.stringify(tripData));
     navigate("/loading");
