@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Clock, ExternalLink, Utensils, Coffee, Star, DollarSign, TrendingUp } from "lucide-react";
+import { Clock, ExternalLink, Utensils, Coffee, Star, DollarSign, TrendingUp, Calendar, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
