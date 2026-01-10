@@ -6,126 +6,109 @@ import { ItineraryCard } from "@/components/ItineraryCard";
 import { MediaSidebar } from "@/components/MediaSidebar";
 import { MapEmbed } from "@/components/MapEmbed";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Share2, Download, Film, Navigation } from "lucide-react";
+import { ArrowLeft, Share2, Download } from "lucide-react";
 
-// FIX API: Replace mockItinerary with data from Flask API response
-// The API should return array of itinerary items with name, time, duration, address, openingHours, tags, websiteUrl, isMeal
-const mockItinerary = [
-  {
-    id: "1",
-    name: "Sunrise at Sunset Cliffs",
-    time: "8:00 AM",
-    duration: "1 hour",
-    address: "Sunset Cliffs Natural Park, San Diego",
-    openingHours: "Open 24 hours",
-    tags: ["Most Popular", "Hidden Gem"],
-    websiteUrl: "https://www.sandiego.gov/park-and-recreation/parks/regional/shoreline/sunset",
-  },
-  {
-    id: "2",
-    name: "La Jolla Cove Kayaking",
-    time: "9:30 AM",
-    duration: "2 hours",
-    address: "1100 Coast Blvd, La Jolla, CA 92037",
-    openingHours: "Tours: 8AM - 4PM",
-    tags: ["Trending"],
-    websiteUrl: "https://www.lajollakayak.com",
-  },
-  {
-    id: "3",
-    name: "Brunch at The Cottage La Jolla",
-    time: "12:00 PM",
-    duration: "1.5 hours",
-    address: "7702 Fay Ave, La Jolla, CA 92037",
-    openingHours: "7:30AM - 3PM",
-    tags: ["Budget Friendly"],
-    isMeal: "lunch" as const,
-    websiteUrl: "https://www.cottagelajolla.com",
-  },
-  {
-    id: "4",
-    name: "Balboa Park Museums",
-    time: "2:00 PM",
-    duration: "2.5 hours",
-    address: "1549 El Prado, San Diego, CA 92101",
-    openingHours: "10AM - 5PM",
-    tags: ["Most Popular"],
-    websiteUrl: "https://www.balboapark.org",
-  },
-  {
-    id: "5",
-    name: "USS Midway Museum",
-    time: "5:00 PM",
-    duration: "2 hours",
-    address: "910 N Harbor Dr, San Diego, CA 92101",
-    openingHours: "10AM - 5PM",
-    tags: ["Trending", "Most Popular"],
-    websiteUrl: "https://www.midway.org",
-  },
-  {
-    id: "6",
-    name: "Dinner at Gaslamp Quarter",
-    time: "7:30 PM",
-    duration: "2 hours",
-    address: "Fifth Avenue, San Diego, CA 92101",
-    openingHours: "Varies by restaurant",
-    isMeal: "dinner" as const,
-    websiteUrl: "https://www.gaslamp.org",
-  },
-  {
-    id: "7",
-    name: "Rooftop Bar at The Nolen",
-    time: "9:30 PM",
-    duration: "2 hours",
-    address: "453 Sixth Ave, San Diego, CA 92101",
-    openingHours: "4PM - 2AM",
-    tags: ["Hidden Gem"],
-    websiteUrl: "https://www.thenolenrooftop.com",
-  },
-];
+interface ItineraryItem {
+  id: string;
+  name: string;
+  time: string;
+  duration: string;
+  address: string;
+  openingHours: string;
+  tags: string[];
+  websiteUrl: string;
+  isMeal?: "lunch" | "dinner";
+}
 
-// FIX API: Replace mockImages with data from Flask API response
-// The API should return array of image objects with url and caption
-const mockImages = [
-  { url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&q=80", caption: "Sunset Cliffs" },
-  { url: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&q=80", caption: "La Jolla Cove" },
-  { url: "https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=400&q=80", caption: "Balboa Park" },
-  { url: "https://images.unsplash.com/photo-1569289804428-a123b89a1a5c?w=400&q=80", caption: "USS Midway" },
-];
+interface ImageData {
+  url: string;
+  caption: string;
+}
 
-// FIX API: Replace mockVideos with data from Flask API response
-// The API should return array of video objects with youtubeId and title
-const mockVideos = [
-  { youtubeId: "dQw4w9WgXcQ", title: "San Diego Travel Guide" },
-  { youtubeId: "9bZkp7q19f0", title: "Top Things To Do" },
-];
+interface VideoData {
+  youtubeId: string;
+  title: string;
+}
 
-// FIX API: Replace mockCoordinates with data from Flask API response
-// The API should return coordinates object with origin, destination, and waypoints (latitude/longitude pairs)
-const mockCoordinates = {
-  origin: { lat: 32.8458529, lng: -117.2575702 },
-  destination: { lat: 32.7316772, lng: -117.1465253 },
-  waypoints: [
-    { lat: 32.7978268, lng: -117.2403183 },
-    { lat: 32.7792158, lng: -117.2342029 },
-    { lat: 32.7984884, lng: -117.2564953 },
-    { lat: 32.7448067, lng: -117.2476067 },
-    { lat: 32.8919572, lng: -117.2402554 },
-  ],
-};
+interface Coordinates {
+  lat: number;
+  lng: number;
+}
+
+interface CoordinatesData {
+  origin: Coordinates;
+  destination: Coordinates;
+  waypoints: Coordinates[];
+}
+
+interface TripData {
+  location: string;
+  vibes: string[];
+  days: number;
+  budget: number;
+}
+
+interface ItineraryData {
+  itinerary: ItineraryItem[];
+  images: ImageData[];
+  videos: VideoData[];
+  coordinates: CoordinatesData;
+}
 
 const Results = () => {
   const navigate = useNavigate();
-  const [tripData, setTripData] = useState<any>(null);
+  const [tripData, setTripData] = useState<TripData | null>(null);
+  const [itineraryData, setItineraryData] = useState<ItineraryData | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // FIX API: Retrieve itinerary results from sessionStorage that were set by Loading.tsx
-    // This should contain the complete itinerary data returned from Flask API
-    const data = sessionStorage.getItem("tripData");
-    if (data) {
-      setTripData(JSON.parse(data));
+    try {
+      // Get trip data (location, vibes, days, budget)
+      const storedTripData = localStorage.getItem("tripData");
+      if (storedTripData) {
+        setTripData(JSON.parse(storedTripData));
+      }
+
+      // Get itinerary data (itinerary items, images, videos, coordinates)
+      const storedItineraryData = localStorage.getItem("itineraryData");
+      if (storedItineraryData) {
+        setItineraryData(JSON.parse(storedItineraryData));
+      } else {
+        // If no itinerary data, redirect back to home
+        console.error("No itinerary data found");
+        navigate("/");
+      }
+    } catch (error) {
+      console.error("Error loading data from localStorage:", error);
+      navigate("/");
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  }, [navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading your itinerary...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!itineraryData) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-muted-foreground">No itinerary found</p>
+          <Button onClick={() => navigate("/")} className="mt-4">
+            Plan a New Trip
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -170,6 +153,7 @@ const Results = () => {
           </h1>
           <p className="text-muted-foreground mt-2">
             {tripData?.days || 1} day adventure • {tripData?.vibes?.join(", ") || "Custom"} vibe
+            {tripData?.budget && ` • $${tripData.budget} budget`}
           </p>
         </motion.div>
       </div>
@@ -185,7 +169,10 @@ const Results = () => {
             className="lg:col-span-3 order-2 lg:order-1"
           >
             <div className="sticky top-24">
-              <MediaSidebar images={mockImages} videos={mockVideos} />
+              <MediaSidebar 
+                images={itineraryData.images || []} 
+                videos={itineraryData.videos || []} 
+              />
             </div>
           </motion.aside>
 
@@ -197,14 +184,20 @@ const Results = () => {
             className="lg:col-span-5 order-1 lg:order-2"
           >
             <div className="space-y-3">
-              {mockItinerary.map((item, index) => (
-                <ItineraryCard
-                  key={item.id}
-                  item={item}
-                  index={index}
-                  isLast={index === mockItinerary.length - 1}
-                />
-              ))}
+              {itineraryData.itinerary && itineraryData.itinerary.length > 0 ? (
+                itineraryData.itinerary.map((item, index) => (
+                  <ItineraryCard
+                    key={item.id}
+                    item={item}
+                    index={index}
+                    isLast={index === itineraryData.itinerary.length - 1}
+                  />
+                ))
+              ) : (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">No itinerary items found</p>
+                </div>
+              )}
             </div>
           </motion.div>
 
@@ -216,11 +209,17 @@ const Results = () => {
             className="lg:col-span-4 order-3"
           >
             <div className="sticky top-24">
-              <MapEmbed
-                origin={mockCoordinates.origin}
-                destination={mockCoordinates.destination}
-                waypoints={mockCoordinates.waypoints}
-              />
+              {itineraryData.coordinates ? (
+                <MapEmbed
+                  origin={itineraryData.coordinates.origin}
+                  destination={itineraryData.coordinates.destination}
+                  waypoints={itineraryData.coordinates.waypoints}
+                />
+              ) : (
+                <div className="bg-card rounded-lg border border-border p-8 text-center">
+                  <p className="text-muted-foreground">Map data unavailable</p>
+                </div>
+              )}
             </div>
           </motion.aside>
         </div>
