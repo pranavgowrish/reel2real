@@ -74,32 +74,26 @@ export const ItineraryCard = ({ item, index, isLast }: ItineraryCardProps) => {
 
         {/* Card content - cleaner layout */}
         <div className="flex-1 bg-card/50 rounded-xl border border-border/50 p-3 hover:bg-card hover:shadow-md transition-all duration-200 mb-3">
-          <div className="space-y-2">
-            {/* Title and action button */}
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex-1 min-w-0">
-                <h4 className="font-semibold text-foreground text-sm">
-                  {item.name}
-                </h4>
-              </div>
-              {item.websiteUrl && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-7 px-2 shrink-0 text-primary hover:text-primary hover:bg-primary/10"
-                  onClick={() => window.open(item.websiteUrl, "_blank")}
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </Button>
-              )}
+          <div className="space-y-3">
+            {/* Title */}
+            <div>
+              <h4 className="font-semibold text-foreground text-sm">
+                {item.name}
+              </h4>
             </div>
 
-            {/* Secondary info in one row */}
+            {/* Duration and Opening Hours in one row */}
             <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
               {item.duration && (
                 <div className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />
                   <span>{item.duration}</span>
+                </div>
+              )}
+              {item.openingHours && (
+                <div className="flex items-center gap-1">
+                  <MapPin className="h-3 w-3" />
+                  <span>{item.openingHours}</span>
                 </div>
               )}
               {item.isMeal && (
@@ -127,10 +121,32 @@ export const ItineraryCard = ({ item, index, isLast }: ItineraryCardProps) => {
               </div>
             )}
 
-            {/* Address - subtle */}
-            <p className="text-xs text-muted-foreground leading-snug">
-              {item.address}
-            </p>
+            {/* Action Buttons */}
+            <div className="flex gap-2 pt-2">
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1 h-8 text-xs"
+                onClick={() => window.open(item.websiteUrl, "_blank")}
+              >
+                <ExternalLink className="h-3 w-3 mr-1" />
+                Visit
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1 h-8 text-xs"
+              >
+                <Calendar className="h-3 w-3 mr-1" />
+                Reserve
+              </Button>
+              <Button
+                size="sm"
+                className="flex-1 h-8 text-xs"
+              >
+                Book
+              </Button>
+            </div>
           </div>
         </div>
       </div>
