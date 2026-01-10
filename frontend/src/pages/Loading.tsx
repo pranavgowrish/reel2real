@@ -15,7 +15,8 @@ const cityImages: Record<string, string> = {
   "default": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&q=80",
 };
 
-// Mock venues for the shortlisting animation
+// FIX API: Replace mockVenues with real data from Flask API response
+// The API should return venue data to show in the shortlisting phase animation
 const mockVenues = [
   { name: "Sunset Cliffs", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=200&q=80" },
   { name: "La Jolla Cove", image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=200&q=80" },
