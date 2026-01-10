@@ -27,3 +27,4 @@ async def example(request: Request):
     }
     
     return JSONResponse(content=message)
+

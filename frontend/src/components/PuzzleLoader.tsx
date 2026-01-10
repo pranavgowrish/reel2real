@@ -112,17 +112,14 @@ export const PuzzleLoader = ({ cityImage, venues, phase }: PuzzleLoaderProps) =>
               }}
               exit={{ opacity: 0, scale: 0.3, y: 20 }}
               transition={{
-                initial: { duration: 0.5, ease: "easeOut" },
-                animate: {
-                  y: {
-                    duration: 3,
-                    repeat: Infinity,
-                    ease: "easeInOut",
-                  },
-                  opacity: { duration: 0.5 },
-                  scale: { duration: 0.5 },
+                default: { duration: 0.5, ease: "easeOut" },
+                y: {
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: "easeInOut",
                 },
-                exit: { duration: 0.4, ease: "easeIn" },
+                opacity: { duration: 0.5 },
+                scale: { duration: 0.5 },
               }}
             >
               <img

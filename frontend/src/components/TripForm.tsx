@@ -59,12 +59,34 @@ export const TripForm = () => {
       days,
       budget: budget[0],
     };
+
     // FIX API: Call Flask endpoint POST /api/generate-itinerary with tripData
     // Expected response: { itinerary, venues, images, coordinates, etc. }
     // Store in sessionStorage for the loading page
+
+        const fetchData = async () => {
+      const response = await fetch(
+        "https://knight-s-code.onrender.com/question",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({  }),
+        },
+      );
+
+      const data = await response.json();
+      console.log("DATA:", data);
+    };
+
+    fetchData();
+
+
     sessionStorage.setItem("tripData", JSON.stringify(tripData));
     navigate("/loading");
   };
+
 
   return (
     <motion.div
