@@ -103,6 +103,13 @@ export const ItineraryCard = ({ item, index, isLast }: ItineraryCardProps) => {
               )}
             </div>
 
+            {/* Address - minimal */}
+            {item.address && (
+              <p className="text-xs text-muted-foreground/80 leading-snug">
+                {item.address}
+              </p>
+            )}
+
             {/* Tags - inline */}
             {item.tags && item.tags.length > 0 && (
               <div className="flex flex-wrap gap-1">
