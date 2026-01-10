@@ -8,7 +8,8 @@ import { MapEmbed } from "@/components/MapEmbed";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Share2, Download, Film, Navigation } from "lucide-react";
 
-// Mock itinerary data
+// FIX API: Replace mockItinerary with data from Flask API response
+// The API should return array of itinerary items with name, time, duration, address, openingHours, tags, websiteUrl, isMeal
 const mockItinerary = [
   {
     id: "1",
@@ -83,7 +84,8 @@ const mockItinerary = [
   },
 ];
 
-// Mock media
+// FIX API: Replace mockImages with data from Flask API response
+// The API should return array of image objects with url and caption
 const mockImages = [
   { url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&q=80", caption: "Sunset Cliffs" },
   { url: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&q=80", caption: "La Jolla Cove" },
@@ -91,12 +93,15 @@ const mockImages = [
   { url: "https://images.unsplash.com/photo-1569289804428-a123b89a1a5c?w=400&q=80", caption: "USS Midway" },
 ];
 
+// FIX API: Replace mockVideos with data from Flask API response
+// The API should return array of video objects with youtubeId and title
 const mockVideos = [
   { youtubeId: "dQw4w9WgXcQ", title: "San Diego Travel Guide" },
   { youtubeId: "9bZkp7q19f0", title: "Top Things To Do" },
 ];
 
-// Mock coordinates for San Diego locations
+// FIX API: Replace mockCoordinates with data from Flask API response
+// The API should return coordinates object with origin, destination, and waypoints (latitude/longitude pairs)
 const mockCoordinates = {
   origin: { lat: 32.8458529, lng: -117.2575702 },
   destination: { lat: 32.7316772, lng: -117.1465253 },
