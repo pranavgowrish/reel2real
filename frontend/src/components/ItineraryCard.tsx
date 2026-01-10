@@ -129,6 +129,8 @@ export const ItineraryCard = ({ item, index, isLast }: ItineraryCardProps) => {
             )}
 
             {/* Reserve Button */}
+            {/* FIX API: Call Flask endpoint POST /api/reserve or similar with item details */}
+            {/* This should handle the reservation booking and return confirmation */}
             <Button
               size="sm"
               className="w-full h-8 text-xs"
