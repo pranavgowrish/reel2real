@@ -189,20 +189,15 @@ const Results = () => {
             transition={{ delay: 0.3 }}
             className="lg:col-span-5 order-1 lg:order-2"
           >
-            <div className="bg-card rounded-2xl border border-border p-6 shadow-lg">
-              <h2 className="text-xl font-bold mb-6 text-foreground">
-                Day 1 Itinerary
-              </h2>
-              <div className="space-y-2">
-                {mockItinerary.map((item, index) => (
-                  <ItineraryCard
-                    key={item.id}
-                    item={item}
-                    index={index}
-                    isLast={index === mockItinerary.length - 1}
-                  />
-                ))}
-              </div>
+            <div className="space-y-3">
+              {mockItinerary.map((item, index) => (
+                <ItineraryCard
+                  key={item.id}
+                  item={item}
+                  index={index}
+                  isLast={index === mockItinerary.length - 1}
+                />
+              ))}
             </div>
           </motion.div>
 
