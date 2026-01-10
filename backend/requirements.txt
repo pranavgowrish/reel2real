@@ -2,3 +2,6 @@ fastapi
 uvicorn
 twelvelabs
 requests
+pytube
+typing
+instaloader
