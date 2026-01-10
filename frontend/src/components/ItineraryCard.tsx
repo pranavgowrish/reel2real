@@ -48,12 +48,12 @@ export const ItineraryCard = ({ item, index, isLast }: ItineraryCardProps) => {
         <div className="absolute left-6 top-16 bottom-0 w-0.5 bg-gradient-to-b from-primary/50 to-primary/10" />
       )}
 
-      <div className="flex gap-4">
-        {/* Time indicator */}
-        <div className="flex flex-col items-center">
+      <div className="flex gap-3">
+        {/* Time indicator - more compact */}
+        <div className="flex flex-col items-center flex-shrink-0">
           <div
             className={cn(
-              "w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold shadow-lg",
+              "w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold shadow-md",
               item.isMeal
                 ? "bg-gradient-to-br from-accent to-primary text-accent-foreground"
                 : "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground"
@@ -67,72 +67,70 @@ export const ItineraryCard = ({ item, index, isLast }: ItineraryCardProps) => {
               <span>{index + 1}</span>
             )}
           </div>
-          <span className="text-xs text-muted-foreground mt-1 font-medium">
+          <span className="text-xs text-muted-foreground mt-2 font-medium">
             {item.time}
           </span>
         </div>
 
-        {/* Card content */}
-        <div className="flex-1 bg-card rounded-2xl border border-border shadow-md hover:shadow-lg transition-shadow p-4 mb-4">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <h4 className="font-semibold text-foreground truncate">
+        {/* Card content - cleaner layout */}
+        <div className="flex-1 bg-card/50 rounded-xl border border-border/50 p-3 hover:bg-card hover:shadow-md transition-all duration-200 mb-3">
+          <div className="space-y-2">
+            {/* Title and action button */}
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <h4 className="font-semibold text-foreground text-sm">
                   {item.name}
                 </h4>
-                {item.isMeal && (
-                  <Badge variant="secondary" className="text-xs shrink-0">
-                    {item.isMeal === "lunch" ? "🍽️ Lunch Break" : "🌙 Dinner Break"}
-                  </Badge>
-                )}
               </div>
-              <p className="text-sm text-muted-foreground mb-2">{item.address}</p>
-
-              {/* Tags */}
-              {item.tags && item.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mb-2">
-                  {item.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className={cn(
-                        "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border",
-                        tagColors[tag] || "bg-muted text-muted-foreground border-border"
-                      )}
-                    >
-                      {tagIcons[tag]}
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {/* Opening hours */}
-              {item.openingHours && (
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Clock className="h-3 w-3" />
-                  <span>{item.openingHours}</span>
-                </div>
+              {item.websiteUrl && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 px-2 shrink-0 text-primary hover:text-primary hover:bg-primary/10"
+                  onClick={() => window.open(item.websiteUrl, "_blank")}
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </Button>
               )}
             </div>
 
-            {/* Website button */}
-            {item.websiteUrl && (
-              <Button
-                size="sm"
-                variant="outline"
-                className="shrink-0"
-                onClick={() => window.open(item.websiteUrl, "_blank")}
-              >
-                <ExternalLink className="h-4 w-4 mr-1" />
-                Visit
-              </Button>
-            )}
-          </div>
+            {/* Secondary info in one row */}
+            <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
+              {item.duration && (
+                <div className="flex items-center gap-1">
+                  <Clock className="h-3 w-3" />
+                  <span>{item.duration}</span>
+                </div>
+              )}
+              {item.isMeal && (
+                <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                  {item.isMeal === "lunch" ? "🍽️ Lunch" : "🌙 Dinner"}
+                </Badge>
+              )}
+            </div>
 
-          {/* Duration indicator */}
-          <div className="mt-3 pt-3 border-t border-border/50 flex items-center gap-2 text-xs text-muted-foreground">
-            <Clock className="h-3 w-3" />
-            <span>Suggested duration: {item.duration}</span>
+            {/* Tags - inline */}
+            {item.tags && item.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {item.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className={cn(
+                      "inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-medium border",
+                      tagColors[tag] || "bg-muted text-muted-foreground border-border"
+                    )}
+                  >
+                    {tagIcons[tag]}
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Address - subtle */}
+            <p className="text-xs text-muted-foreground leading-snug">
+              {item.address}
+            </p>
           </div>
         </div>
       </div>
