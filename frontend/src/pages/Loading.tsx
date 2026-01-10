@@ -15,7 +15,8 @@ const cityImages: Record<string, string> = {
   "default": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&q=80",
 };
 
-// Mock venues for the shortlisting animation
+// FIX API: Replace mockVenues with real data from Flask API response
+// The API should return venue data to show in the shortlisting phase animation
 const mockVenues = [
   { name: "Sunset Cliffs", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=200&q=80" },
   { name: "La Jolla Cove", image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=200&q=80" },
@@ -31,6 +32,8 @@ const Loading = () => {
   const [tripData, setTripData] = useState<any>(null);
 
   useEffect(() => {
+    // FIX API: Call Flask endpoint GET /api/generate-itinerary-status or similar
+    // This should return the status of itinerary generation
     // Get trip data from session storage
     const data = sessionStorage.getItem("tripData");
     if (data) {
@@ -41,17 +44,18 @@ const Loading = () => {
       return;
     }
 
-    // Simulate loading phases
-    // Phase 1: Searching (3 seconds)
+    // FIX API: Replace hardcoded timers with actual API response times
+    // Phase 1: Searching - wait for Flask to start searching websites
     const timer1 = setTimeout(() => {
       setPhase("shortlisting");
     }, 3000);
 
-    // Phase 2: Shortlisting (4 seconds)
+    // FIX API: Phase 2: Shortlisting - wait for Flask to curate and shortlist venues
     const timer2 = setTimeout(() => {
       setPhase("complete");
     }, 7000);
 
+    // FIX API: Store itinerary results from Flask API into sessionStorage before navigating
     // Navigate to results
     const timer3 = setTimeout(() => {
       navigate("/results");

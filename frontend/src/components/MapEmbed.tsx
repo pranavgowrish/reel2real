@@ -15,13 +15,6 @@ export const MapEmbed = ({ origin, destination, waypoints }: MapEmbedProps) => {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <Navigation className="h-5 w-5 text-accent" />
-        <h3 className="font-bold text-lg">
-          <span className="text-foreground">Real</span>
-        </h3>
-      </div>
-      
       <div className="rounded-2xl overflow-hidden shadow-xl border-2 border-border">
         <iframe
           src={mapUrl}

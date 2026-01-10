@@ -8,7 +8,8 @@ import { MapEmbed } from "@/components/MapEmbed";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Share2, Download, Film, Navigation } from "lucide-react";
 
-// Mock itinerary data
+// FIX API: Replace mockItinerary with data from Flask API response
+// The API should return array of itinerary items with name, time, duration, address, openingHours, tags, websiteUrl, isMeal
 const mockItinerary = [
   {
     id: "1",
@@ -83,7 +84,8 @@ const mockItinerary = [
   },
 ];
 
-// Mock media
+// FIX API: Replace mockImages with data from Flask API response
+// The API should return array of image objects with url and caption
 const mockImages = [
   { url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&q=80", caption: "Sunset Cliffs" },
   { url: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=400&q=80", caption: "La Jolla Cove" },
@@ -91,12 +93,15 @@ const mockImages = [
   { url: "https://images.unsplash.com/photo-1569289804428-a123b89a1a5c?w=400&q=80", caption: "USS Midway" },
 ];
 
+// FIX API: Replace mockVideos with data from Flask API response
+// The API should return array of video objects with youtubeId and title
 const mockVideos = [
   { youtubeId: "dQw4w9WgXcQ", title: "San Diego Travel Guide" },
   { youtubeId: "9bZkp7q19f0", title: "Top Things To Do" },
 ];
 
-// Mock coordinates for San Diego locations
+// FIX API: Replace mockCoordinates with data from Flask API response
+// The API should return coordinates object with origin, destination, and waypoints (latitude/longitude pairs)
 const mockCoordinates = {
   origin: { lat: 32.8458529, lng: -117.2575702 },
   destination: { lat: 32.7316772, lng: -117.1465253 },
@@ -114,6 +119,8 @@ const Results = () => {
   const [tripData, setTripData] = useState<any>(null);
 
   useEffect(() => {
+    // FIX API: Retrieve itinerary results from sessionStorage that were set by Loading.tsx
+    // This should contain the complete itinerary data returned from Flask API
     const data = sessionStorage.getItem("tripData");
     if (data) {
       setTripData(JSON.parse(data));
@@ -147,12 +154,12 @@ const Results = () => {
         </div>
       </header>
 
-      {/* Reel to Real Header */}
+      {/* Page Header */}
       <div className="container mx-auto px-4 py-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-6"
+          className="text-center"
         >
           <h1 className="text-3xl md:text-4xl font-bold">
             Your{" "}
@@ -162,27 +169,9 @@ const Results = () => {
             Itinerary
           </h1>
           <p className="text-muted-foreground mt-2">
-            {tripData?.days || 1} day adventure •{" "}
-            {tripData?.vibes?.join(", ") || "Custom"} vibe
+            {tripData?.days || 1} day adventure • {tripData?.vibes?.join(", ") || "Custom"} vibe
           </p>
         </motion.div>
-
-        {/* Column Headers */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-4">
-          <div className="lg:col-span-3">
-            <div className="flex items-center gap-2 text-lg font-bold">
-              <Film className="h-5 w-5 text-primary" />
-              <span className="text-primary">Reel</span>
-            </div>
-          </div>
-          <div className="hidden lg:block lg:col-span-5" />
-          <div className="lg:col-span-4">
-            <div className="flex items-center gap-2 text-lg font-bold">
-              <Navigation className="h-5 w-5 text-accent-foreground" />
-              <span className="text-foreground">Real</span>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Main Content */}
@@ -207,20 +196,15 @@ const Results = () => {
             transition={{ delay: 0.3 }}
             className="lg:col-span-5 order-1 lg:order-2"
           >
-            <div className="bg-card rounded-2xl border border-border p-6 shadow-lg">
-              <h2 className="text-xl font-bold mb-6 text-foreground">
-                Day 1 Itinerary
-              </h2>
-              <div className="space-y-2">
-                {mockItinerary.map((item, index) => (
-                  <ItineraryCard
-                    key={item.id}
-                    item={item}
-                    index={index}
-                    isLast={index === mockItinerary.length - 1}
-                  />
-                ))}
-              </div>
+            <div className="space-y-3">
+              {mockItinerary.map((item, index) => (
+                <ItineraryCard
+                  key={item.id}
+                  item={item}
+                  index={index}
+                  isLast={index === mockItinerary.length - 1}
+                />
+              ))}
             </div>
           </motion.div>
 
