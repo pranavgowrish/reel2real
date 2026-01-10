@@ -119,6 +119,8 @@ const Results = () => {
   const [tripData, setTripData] = useState<any>(null);
 
   useEffect(() => {
+    // FIX API: Retrieve itinerary results from sessionStorage that were set by Loading.tsx
+    // This should contain the complete itinerary data returned from Flask API
     const data = sessionStorage.getItem("tripData");
     if (data) {
       setTripData(JSON.parse(data));
