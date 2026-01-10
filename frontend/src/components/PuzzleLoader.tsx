@@ -48,12 +48,14 @@ export const PuzzleLoader = ({ cityImage, venues, phase }: PuzzleLoaderProps) =>
   };
 
   const bubblePositions = [
-    { top: "5%", left: "-15%" },
-    { top: "5%", right: "-15%" },
-    { top: "35%", left: "-20%" },
-    { top: "35%", right: "-20%" },
-    { top: "65%", left: "-15%" },
-    { top: "65%", right: "-15%" },
+    { top: "-10%", left: "50%", transform: "translateX(-50%)" }, // top center
+    { top: "8%", left: "-18%", transform: "translateX(0)" }, // top left
+    { top: "8%", right: "-18%", transform: "translateX(0)" }, // top right
+    { top: "50%", left: "-18%", transform: "translateY(-50%)" }, // middle left
+    { top: "50%", right: "-18%", transform: "translateY(-50%)" }, // middle right
+    { bottom: "-10%", left: "50%", transform: "translateX(-50%)" }, // bottom center
+    { bottom: "10%", left: "-15%" }, // bottom left
+    { bottom: "10%", right: "-15%" }, // bottom right
   ];
 
   return (
@@ -93,37 +95,48 @@ export const PuzzleLoader = ({ cityImage, venues, phase }: PuzzleLoaderProps) =>
           })}
         </div>
 
-        {/* Thought Bubbles */}
-        <AnimatePresence>
-          {phase === "shortlisting" &&
-            venues.map((venue, index) => (
-              <motion.div
-                key={venue.name}
-                className={cn(
-                  "absolute w-28 md:w-36 p-2 bg-card rounded-xl shadow-xl border-2 border-primary/20",
-                  activeVenue === index ? "z-10" : "z-0"
-                )}
-                style={bubblePositions[index % bubblePositions.length]}
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{
-                  opacity: activeVenue === index ? 1 : 0.4,
-                  scale: activeVenue === index ? 1.1 : 0.9,
-                }}
-                exit={{ opacity: 0, scale: 0 }}
-                transition={{ duration: 0.4 }}
-              >
-                <img
-                  src={venue.image}
-                  alt={venue.name}
-                  className="w-full h-16 md:h-20 object-cover rounded-lg mb-1"
-                />
-                <p className="text-xs font-medium text-center truncate text-foreground">
-                  {venue.name}
-                </p>
-                {/* Bubble tail */}
-                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-card rotate-45 border-r-2 border-b-2 border-primary/20" />
-              </motion.div>
-            ))}
+        {/* Thought Bubbles - Only show active bubble */}
+        <AnimatePresence mode="wait">
+          {phase === "shortlisting" && activeVenue !== null && (
+            <motion.div
+              key={`bubble-${activeVenue}`}
+              className="absolute w-28 md:w-36 p-2 bg-card rounded-xl shadow-xl border-2 border-primary/20"
+              style={{
+                ...bubblePositions[activeVenue % bubblePositions.length],
+              }}
+              initial={{ opacity: 0, scale: 0.3, y: -20 }}
+              animate={{
+                opacity: 1,
+                scale: 1,
+                y: [0, -8, 0],
+              }}
+              exit={{ opacity: 0, scale: 0.3, y: 20 }}
+              transition={{
+                initial: { duration: 0.5, ease: "easeOut" },
+                animate: {
+                  y: {
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  },
+                  opacity: { duration: 0.5 },
+                  scale: { duration: 0.5 },
+                },
+                exit: { duration: 0.4, ease: "easeIn" },
+              }}
+            >
+              <img
+                src={venues[activeVenue].image}
+                alt={venues[activeVenue].name}
+                className="w-full h-16 md:h-20 object-cover rounded-lg mb-1"
+              />
+              <p className="text-xs font-medium text-center truncate text-foreground">
+                {venues[activeVenue].name}
+              </p>
+              {/* Bubble tail */}
+              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-card rotate-45 border-r-2 border-b-2 border-primary/20" />
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
 
