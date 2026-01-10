@@ -128,32 +128,15 @@ export const ItineraryCard = ({ item, index, isLast }: ItineraryCardProps) => {
               </div>
             )}
 
-            {/* Action Buttons */}
-            <div className="flex gap-2 pt-2">
-              <Button
-                size="sm"
-                variant="outline"
-                className="flex-1 h-8 text-xs"
-                onClick={() => window.open(item.websiteUrl, "_blank")}
-              >
-                <ExternalLink className="h-3 w-3 mr-1" />
-                Visit
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="flex-1 h-8 text-xs"
-              >
-                <Calendar className="h-3 w-3 mr-1" />
-                Reserve
-              </Button>
-              <Button
-                size="sm"
-                className="flex-1 h-8 text-xs"
-              >
-                Book
-              </Button>
-            </div>
+            {/* Reserve Button */}
+            <Button
+              size="sm"
+              className="w-full h-8 text-xs"
+              onClick={() => window.open(item.websiteUrl, "_blank")}
+            >
+              <Calendar className="h-3 w-3 mr-1.5" />
+              Reserve
+            </Button>
           </div>
         </div>
       </div>
