@@ -31,7 +31,6 @@ def create_index(name: str) -> str:
     payload = {
         "index_name": name,
         "models": [
-            {"model_name": "marengo2.7", "model_options": ["visual", "audio"]},
             {"model_name": "pegasus1.2", "model_options": ["visual", "audio"]}
         ]
     }
@@ -42,7 +41,7 @@ def create_index(name: str) -> str:
 
     result = response.json()
     # API returns "_id" not "id"
-    return result.get("_id") or result.get("id")
+    return result.get("id")
 
 
 def create_task(index_id: str, file_path: str, language: str = "en") -> Dict[str, str]:

@@ -121,7 +121,7 @@ export const LocationSearch = ({
     <div className="relative w-full">
       {/* Location pill */}
       <div className="flex justify-center mb-4">
-        <div className="flex items-center gap-2 px-4 py-2 rounded-full text-base bg-primary text-primary-foreground">
+        <div className="flex items-center gap-2 font-semibold px-4 py-2 rounded-full text-base bg-primary text-primary-foreground">
           <MapPin className="h-5 w-5" />
           Location
         </div>

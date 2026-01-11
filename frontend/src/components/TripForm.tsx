@@ -103,7 +103,7 @@ export const TripForm = () => {
     >
       <motion.div
         layout
-        className={`bg-card/80 backdrop-blur-xl rounded-3xl border-2 border-border shadow-2xl p-6 md:p-10 transition-all duration-500 ${
+        className={`bg-white/10 backdrop-blur-md rounded-3xl font-medium border border-white/20 shadow-2xl p-6 md:p-10 transition-all duration-500 ${
           isExpanded ? "max-w-3xl" : ""
         }`}
       >
@@ -116,13 +116,13 @@ export const TripForm = () => {
 
         <AnimatePresence>
           {!isExpanded && location.trim() && (
+
             <motion.div className="mt-4">
               <Button
                 onClick={handleSearchSubmit}
                 size="lg"
-                className="w-full rounded-xl text-lg py-6 bg-gradient-to-r from-primary to-accent"
-              >
-                Let’s Go <ArrowRight className="ml-2 h-5 w-5" />
+                className="text-sm md:text-base text-white font-medium leading-relaxed max-w-xl">
+                Let's Go <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </motion.div>
           )}
@@ -133,7 +133,8 @@ export const TripForm = () => {
             <motion.div className="space-y-8 mt-8">
               {/* Vibes */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold">What’s your vibe?</h3>
+                
+                <h3 className="text-lg font-semibold">What's your vibe?</h3>
                 <div className="flex flex-wrap gap-2">
                   {vibes.map((vibe) => (
                     <VibeChip
@@ -157,7 +158,7 @@ export const TripForm = () => {
                     <PopoverTrigger asChild>
                       <Button
                         variant="outline"
-                        className="w-full justify-start text-left font-normal rounded-xl"
+                        className="w-full justify-start text-left font-sans rounded-xl"
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {dateRange?.from ? (
@@ -239,9 +240,9 @@ export const TripForm = () => {
                   !dateRange?.from ||
                   !dateRange?.to
                 }
-                className="w-full rounded-xl text-lg py-6 bg-gradient-to-r from-primary to-accent disabled:opacity-50"
+                className="w-full rounded-xl text-lg py-6 opacity-70"
               >
-                Create My Adventure <Sparkles className="ml-2 h-5 w-5" />
+                Create My Adventure
               </Button>
             </motion.div>
           )}

@@ -17,7 +17,7 @@ export const VibeChip = ({ label, icon: Icon, selected, onClick }: VibeChipProps
         "hover:scale-105 hover:shadow-md",
         selected
           ? "bg-primary text-primary-foreground border-primary shadow-lg"
-          : "bg-card text-card-foreground border-border hover:border-primary/50"
+          : "bg-card text-card-foreground border-border hover:border-primary/20"
       )}
     >
       <Icon className="h-4 w-4" />
