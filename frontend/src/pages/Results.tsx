@@ -95,8 +95,8 @@ const lastLocationAddress = itineraryData.last_location.address;
 console.log(lastLocationAddress); 
       // Store the API response
       localStorage.setItem("hotel", JSON.stringify(data));
-      setHotelData(data.result);
-      console.log("Hotel data set:", data);
+      setHotelData(data);
+      console.log("Hotel data set:", hotelData);
     } catch (error) {
       console.error("Error fetching hotel:", error);
       navigate("/error");
@@ -278,7 +278,7 @@ console.log(lastLocationAddress);
                       item={{
                         id: "0",
                         name: hotelData.name || "Hotel Check-in",
-                        time: tripData?.checkin || "Check-in",
+                        time: "8:00 AM",
                         duration: "Check-in",
                         address: hotelData.address || "",
                         openingHours: "24 hours",
@@ -289,7 +289,6 @@ console.log(lastLocationAddress);
                       index={0}
                       isLast={false}
                     />
-                    HELLOOOOO
                     </>
                   )}
 
@@ -310,7 +309,7 @@ console.log(lastLocationAddress);
                       item={{
                         id: String(itineraryData.itinerary.length + 1),
                         name: hotelData.name || "Hotel",
-                        time: tripData?.checkout || "",
+                        time: "EOD",
                         duration: "Check-out",
                         address: hotelData.address || "",
                         openingHours: "24 hours",

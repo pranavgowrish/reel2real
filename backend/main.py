@@ -28,7 +28,7 @@ load_dotenv()
 # =========================
 # ENDPOINT 
 # =========================
-client = genai.Client(api_key="AIzaSyDkaWhk48curcsSld_OMemR-qPLCns_RRw")
+client = genai.Client(api_key="AIzaSyB5_Y46cWjFDep50FbvZyF5RMhciGLBTG4")
 
 
 
@@ -203,8 +203,8 @@ async def gemini_confirm(request: Request):
 
     print("Received city:", city, "vibe:", vibe, "budget:", budget)
 
-    #top_places = await scrape_test.collect_venues(city, vibe)
-    top_places = ["Central Park", "Statue of Liberty", "Times Square", "Brooklyn Bridge", "Metropolitan Museum of Art"]
+    top_places = await scrape_test.collect_venues(city, vibe)
+    #top_places = ["Central Park", "Statue of Liberty", "Times Square", "Brooklyn Bridge", "Metropolitan Museum of Art"]
 
     prompt = f"""Your goal is to confirm if the following list of venues are best in the location {city} for a vacationer seeking an {vibe} vibe within a budget of {budget}.
     Top Places: {top_places}
