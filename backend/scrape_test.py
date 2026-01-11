@@ -11,6 +11,8 @@ import concurrent.futures
 # Load spaCy model
 nlp = spacy.load("en_core_web_sm")
 
+ddg = DDGS()
+
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36',
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -19,13 +21,16 @@ HEADERS = {
     'Connection': 'keep-alive',
 }
 
-# Domains we ALLOW scraping (article-style sites)
 ALLOWED_DOMAINS = [
     "travel",
     "guide",
     "visit",
     "blog",
     "food",
+    ""
+]
+
+ALLOWED_VIDEO_DOMAINS = [
     ""
 ]
 
@@ -63,6 +68,11 @@ def is_allowed_domain(url):
     domain = urlparse(url).netloc.lower()
     return any(allowed in domain for allowed in ALLOWED_DOMAINS)
 
+def is_allowed_video_domain(url):
+    """Check if domain is allowed for video scraping"""
+    domain = urlparse(url).netloc.lower()
+    return any(allowed in domain for allowed in ALLOWED_VIDEO_DOMAINS)
+
 
 def search_article_urls(query, max_results=50):
     """Search and filter for scrapeable article URLs"""
@@ -92,6 +102,21 @@ def search_article_urls(query, max_results=50):
     
     return urls
 
+
+def extract_video_urls(query, max_results=20):
+    urls = []
+    
+    results = ddg.videos(query, max_results=max_results)
+    
+    for i, result in enumerate(results, 1):
+        url = result.get('content')
+        if url and is_allowed_video_domain(url):
+            urls.append(url)
+            print(f"    ✓ {url[:60]}")
+        
+        time.sleep(1)
+        
+    return urls
 
 def extract_query_entities(query):
     """Extract location entities from query to filter them out"""
@@ -203,30 +228,19 @@ def collect_venues(destination, vibe):
         articles = search_article_urls(query, max_results=15)
         article_urls = [article['url'] for article in articles]
         
-        # Scrape each article
-        # for article in article_urls:
-            # venues = scrape_article_for_venues(article['url'], destination, query_blacklist)
-            # t1 = threading.Thread(target=scrape_article_for_venues, args=(article['url'], destination, query_blacklist))
-            # t1.start()
-            # t1.join()
-            
-            # all_venues.extend(t1.result())
-            # time.sleep(1)  # Rate limiting
+        videos = extract_video_urls(query, max_results=10)
             
         destinations = [destination] * len(article_urls)
         query_blacklists = [query_blacklist] * len(article_urls)
         
         with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
             venues_results = list(executor.map(scrape_article_for_venues, article_urls, destinations, query_blacklists))
-            # Flatten the list of lists into a single list
             for venues_list in venues_results:
                 all_venues.extend(venues_list)
         print()
     
-    # Count and rank venues by frequency
     venue_counts = Counter(all_venues)
     
-    # Convert to list of dicts with scores
     ranked_venues = [
         {
             "name": name,
@@ -238,17 +252,40 @@ def collect_venues(destination, vibe):
     
     print(f"✅ Extracted {len(ranked_venues)} unique venues (ranked by mentions)\n")
     
-    # Show top venues
     print("Top venues found (ranked by how often they were mentioned):")
     for v in ranked_venues[:10]:
         print(f"  • {v['name']} - mentioned {v['score']}x across articles")
     print()
     
-    return ranked_venues
+    # return ranked_venues
+    for video in videos:
+        print(f"    ✓ {video[:60]}")
+    return videos
+
+# def collect_venues2(destination, vibe):
+#     """Main venue collection pipeline"""
+#     print(f"🔍 Searching for {vibe} venues in {destination}...\n")
+    
+#     queries = build_queries(destination, vibe)
+#     all_venues = []
+    
+#     videos = []
+    
+#     for query in queries:
+#         # Extract query entities to filter out
+#         query_blacklist = extract_query_entities(query)
+#         query_blacklist.add(destination.lower())
+#         query_blacklist.add(destination.title())
+        
+#         videos = extract_video_urls(query, max_results=10)
+#     # return ranked_venues
+#     for video in videos:
+#         print(f"    ✓ {video[:60]}")
+#     return videos
 
 
 if __name__ == "__main__":
-    top_places = collect_venues("Seoul", "adventerous")
+    top_places = collect_venues("Tokyo", "adventurous")
 
     print("\nTop destinations:")
     for venue in top_places:
