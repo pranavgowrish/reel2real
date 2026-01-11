@@ -42,7 +42,7 @@ export const TripForm = () => {
   const [selectedVibes, setSelectedVibes] = useState<string[]>([]);
   const [budget, setBudget] = useState([50]);
 
-  const [people, setPeople] = useState(2);
+  const [days, setPeople] = useState(2);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
   const handleSearchSubmit = () => {
@@ -61,9 +61,9 @@ export const TripForm = () => {
     const tripData = {
       location,
       vibes: selectedVibes,
-      people,
-      startDate: dateRange?.from,
-      endDate: dateRange?.to,
+      days,
+      checkin: dateRange?.from,
+      checkout: dateRange?.to,
       budget: budget[0],
     };
 
@@ -79,7 +79,7 @@ export const TripForm = () => {
           city: location,
           vibe: selectedVibes[0],
           budget: budget[0],
-          people,
+          days,
           startDate: dateRange?.from,
           endDate: dateRange?.to,
         }),
@@ -200,7 +200,7 @@ export const TripForm = () => {
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => setPeople(Math.max(1, people - 1))}
+                      onClick={() => setPeople(Math.max(1, days - 1))}
                       className="h-12 w-12 rounded-full"
                     >
                       <Minus className="h-5 w-5" />
@@ -208,17 +208,17 @@ export const TripForm = () => {
 
                     <div className="text-center">
                       <span className="text-5xl font-bold text-primary">
-                        {people}
+                        {days}
                       </span>
                       <p className="text-muted-foreground">
-                        {people === 1 ? "person" : "people"}
+                        {days === 1 ? "person" : "people"}
                       </p>
                     </div>
 
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => setPeople(Math.min(12, people + 1))}
+                      onClick={() => setPeople(Math.min(12, days + 1))}
                       className="h-12 w-12 rounded-full"
                     >
                       <Plus className="h-5 w-5" />
