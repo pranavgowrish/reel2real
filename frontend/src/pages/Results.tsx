@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Logo } from "@/components/Logo";
 import { ItineraryCard } from "@/components/ItineraryCard";
 import { MediaSidebar } from "@/components/MediaSidebar";
 import { MapEmbed } from "@/components/MapEmbed";
@@ -123,9 +122,9 @@ const Results = () => {
             <ArrowLeft className="h-4 w-4" />
             New Trip
           </Button>
-          
-          <Logo />
-          
+
+          <img src="public/logo2.png" alt="Logo" className="size-1/3" />
+
           <div className="flex items-center gap-2">
             <Button variant="outline" size="icon">
               <Share2 className="h-4 w-4" />
@@ -152,7 +151,8 @@ const Results = () => {
             Itinerary
           </h1>
           <p className="text-muted-foreground mt-2">
-            {tripData?.days || 1} day adventure • {tripData?.vibes?.join(", ") || "Custom"} vibe
+            {tripData?.days || 1} day adventure •{" "}
+            {tripData?.vibes?.join(", ") || "Custom"} vibe
             {tripData?.budget && ` • $${tripData.budget} budget`}
           </p>
         </motion.div>
@@ -169,9 +169,9 @@ const Results = () => {
             className="lg:col-span-3 order-2 lg:order-1"
           >
             <div className="sticky top-24">
-              <MediaSidebar 
-                images={itineraryData.images || []} 
-                videos={itineraryData.videos || []} 
+              <MediaSidebar
+                images={itineraryData.images || []}
+                videos={itineraryData.videos || []}
               />
             </div>
           </motion.aside>
@@ -195,7 +195,9 @@ const Results = () => {
                 ))
               ) : (
                 <div className="text-center py-12">
-                  <p className="text-muted-foreground">No itinerary items found</p>
+                  <p className="text-muted-foreground">
+                    No itinerary items found
+                  </p>
                 </div>
               )}
             </div>
