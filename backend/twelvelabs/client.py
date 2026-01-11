@@ -42,7 +42,7 @@ def create_index(name: str) -> str:
 
     result = response.json()
     # API returns "_id" not "id"
-    return result.get("_id") or result.get("id")
+    return result.get("id")
 
 
 def create_task(index_id: str, file_path: str, language: str = "en") -> Dict[str, str]:
