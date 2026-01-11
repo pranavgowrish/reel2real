@@ -48,6 +48,8 @@ interface TripData {
   vibes: string[];
   days: number;
   budget: number;
+  checkin: string;
+  checkout: string;
 }
 
 interface ItineraryData {
@@ -62,6 +64,39 @@ const Results = () => {
   const [tripData, setTripData] = useState<TripData | null>(null);
   const [itineraryData, setItineraryData] = useState<ItineraryData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hotelData, setHotelData] = useState<any>(null);
+
+  const handleHotel = async () => {
+    try {
+      const itineraryDataStr = localStorage.getItem("itineraryData");
+      const itineraryDataObj = itineraryDataStr ? JSON.parse(itineraryDataStr) : null;
+      const response = await fetch(
+        "http://127.0.0.1:8000/hotel",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            checkin: tripData?.checkin,
+            checkout: tripData?.checkout,
+            adults: tripData?.days,
+            address: itineraryDataObj?.last_location?.address || "",
+          }),
+        }
+      );
+
+      const data = await response.json();
+      console.log("DATA:", data);
+
+      // Store the API response
+      localStorage.setItem("hotel", JSON.stringify(data.result));
+      setHotelData(data.result);
+    } catch (error) {
+      console.error("Error fetching hotel:", error);
+      navigate("/error");
+    }
+  };
 
   useEffect(() => {
     try {
@@ -180,10 +215,7 @@ const Results = () => {
           <div className="flex items-center gap-2">
             <Button 
               className="bg-primary hover:bg-primary/90"
-              onClick={() => {
-                // TODO: Implement hotel search functionality
-                console.log("Find hotel clicked");
-              }}
+              onClick={handleHotel}
             >
               Let Us find the best Hotel for your trip!
             </Button>
@@ -246,14 +278,58 @@ const Results = () => {
           >
             <div className="space-y-3">
               {itineraryData.itinerary && itineraryData.itinerary.length > 0 ? (
-                itineraryData.itinerary.map((item, index) => (
-                  <ItineraryCard
-                    key={item.id}
-                    item={item}
-                    index={index}
-                    isLast={index === itineraryData.itinerary.length - 1}
-                  />
-                ))
+                <>
+                  {/* Hotel card at start */}
+                  {hotelData && (
+                    <ItineraryCard
+                      item={{
+                        id: "0",
+                        name: hotelData.name || "Hotel Check-in",
+                        time: tripData?.checkin || "Check-in",
+                        duration: "Check-in",
+                        address: hotelData.address || "",
+                        openingHours: "24 hours",
+                        tags: ["Hotel"],
+                        websiteUrl: hotelData.link || null,
+                        isMeal: undefined,
+                      }}
+                      index={0}
+                      isLast={false}
+                    />
+                  )}
+
+                  {/* Regular itinerary items */}
+                  {itineraryData.itinerary.map((item, index) => (
+                    <ItineraryCard
+                      key={item.id}
+                      item={item}
+                      index={hotelData ? index + 1 : index}
+                      isLast={
+                        !hotelData &&
+                        index === itineraryData.itinerary.length - 1
+                      }
+                    />
+                  ))}
+
+                  {/* Hotel  card at end */}
+                  {hotelData && (
+                    <ItineraryCard
+                      item={{
+                        id: String(itineraryData.itinerary.length + 1),
+                        name: hotelData.name || "Hotel",
+                        time: tripData?.checkout || "",
+                        duration: "Check-out",
+                        address: hotelData.address || "",
+                        openingHours: "24 hours",
+                        tags: ["Hotel"],
+                        websiteUrl: hotelData.link || null,
+                        isMeal: undefined,
+                      }}
+                      index={itineraryData.itinerary.length + 1}
+                      isLast={true}
+                    />
+                  )}
+                </>
               ) : (
                 <div className="text-center py-12">
                   <p className="text-muted-foreground">

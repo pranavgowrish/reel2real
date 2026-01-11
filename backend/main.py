@@ -8,6 +8,8 @@ import json
 import itinerary_generator
 import re
 
+import deeplinking
+
 from process_video import process_multiple_videos_from_urls
 from analyze_video import analyze_existing_video, analyze_multiple_videos
 
@@ -294,6 +296,30 @@ async def itin(request: Request):
         
     message = {
         "final": itinerary
+    }
+    
+    return JSONResponse(content=message)
+
+@app.post("/hotel")
+async def hotel(request: Request):
+    body = await request.json() 
+
+    address = body.get("address")
+    checkin = body.get("checkin")
+    checkout = body.get("checkout")
+    adults = body.get("adults")
+
+    link, name, address= deeplinking.run(
+        address=address,
+        checkin=checkin,
+        checkout=checkout,
+        adults=adults
+    )
+    print("Generated hotel link:", link)
+    message = {
+        "name":  name,
+        "link": link,
+        "address": address
     }
     
     return JSONResponse(content=message)

@@ -245,7 +245,13 @@ async def generate_itinerary(
     
     # Step 7: Build final response
     first_location = locations_data[0]
+
+    # Find last location with a proper address (not a restaurant)
     last_location = locations_data[route_indices[-1]]
+    for idx in reversed(route_indices):
+        if locations_data[idx]["address"] and not locations_data[idx]["address"].startswith("restaurant nearby"):
+            last_location = locations_data[idx]
+            break
     
     result = {
         "itinerary": itinerary_items,
