@@ -20,8 +20,4 @@ fastapi
 uvicorn
 httpx
 python-dotenv
-pydantic
-httpx
-python-dotenv
-pydantic
-pytest
+re

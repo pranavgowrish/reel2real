@@ -61,9 +61,10 @@ async def analyze_videos(request: Request):
     Returns analysis results for each video.
     """
     try:
+        print("Received /analyze-videos request")
         body = await request.json()
 
-        video_urls = body.get("video_urls")
+        video_urls = await scrape_test.extract_video_urls()
         prompt = body.get("prompt")
 
         # Validation
