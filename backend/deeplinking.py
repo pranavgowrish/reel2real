@@ -142,13 +142,13 @@ def generate_booking_search_link(hotel_name, checkin, checkout, adults):
     return f"{base_url}?{encoded}"
 
 # --- RUN IT ---
-candidates = scrape_google_hotels("tokyo tower", "2026-01-15", "2026-01-20", 2)
+candidates = scrape_google_hotels("tokyo", "2026-02-06", "2026-02-08", 2) #f"{final} {destination}"
 winner = pick_winner(candidates)
 
 if winner:
     print(f"\n WINNER: {winner['name']} (Best balance of Price/Rating)")
     
-    final_link = generate_booking_search_link(winner['name'], "2026-01-15", "2026-01-20", 2)
+    final_link = generate_booking_search_link(winner['name'], "2026-02-06", "2026-02-08", 2)
     print(f" Booking Link: {final_link}")
 else:
     print("No suitable hotels found.")
