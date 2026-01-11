@@ -4,3 +4,10 @@ duckduckgo-search
 ddgs
 spacy
 time
+fastapi
+uvicorn
+twelvelabs
+requests
+pytube
+typing
+instaloader
