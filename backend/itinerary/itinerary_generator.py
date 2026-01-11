@@ -149,30 +149,73 @@ async def generate_itinerary(
     # Convert list to a dictionary for fast lookup: { index: restaurant_data }
     lunch_map = {idx: res for idx, res in lunch_results_list}
     
+    # for i, idx in enumerate(route_indices):
+    #     loc_data = locations_data[idx]
+    #     loc = locations[idx]
+        
+    #     # Calculate arrival time
+    #     if i > 0:
+    #         prev_idx = route_indices[i - 1]
+    #         travel_time = travel_matrix[prev_idx][idx]
+    #         current_time += travel_time
+        
+    #     # Wait for opening if necessary
+    #     if current_time < loc.open:
+    #         current_time = loc.open
+        
+    #     # Check if we should add lunch before this location
+    #     if include_lunch and not lunch_added and 660 <= current_time <= 900:
+    #         # Find restaurant near current or previous location
+    #         search_lat = loc_data["lat"]
+    #         search_lon = loc_data["lon"]
+            
+    #         lunch_restaurant = await find_restaurant_near_location(
+    #             search_lat, search_lon, radius_m=2000
+    #         )
+            
+    #         if lunch_restaurant:
+    #             itinerary_items.append({
+    #                 "id": str(item_id),
+    #                 "name": lunch_restaurant["name"],
+    #                 "time": format_time_12hr(current_time),
+    #                 "duration": "1 hour",
+    #                 "address": lunch_restaurant.get("address", ""),
+    #                 "openingHours": f"{format_time_12hr(lunch_restaurant.get('open_time', 720))} - {format_time_12hr(lunch_restaurant.get('close_time', 1320))}",
+    #                 "tags": ["Lunch"],
+    #                 "websiteUrl": None,
+    #                 "isMeal": "lunch",
+    #                 "lat": lunch_restaurant["lat"],
+    #                 "lon": lunch_restaurant["lon"]
+    #             })
+    #             waypoint_coords.append({
+    #                 "lat": lunch_restaurant["lat"],
+    #                 "lng": lunch_restaurant["lon"]
+    #             })
+    #             item_id += 1
+    #             current_time += 60
+    #             lunch_added = True
+    
     for i, idx in enumerate(route_indices):
         loc_data = locations_data[idx]
         loc = locations[idx]
-        
-        # Calculate arrival time
+
+        # Calculate arrival time (Still sequential)
         if i > 0:
             prev_idx = route_indices[i - 1]
             travel_time = travel_matrix[prev_idx][idx]
             current_time += travel_time
-        
+
         # Wait for opening if necessary
         if current_time < loc.open:
             current_time = loc.open
-        
+
         # Check if we should add lunch before this location
         if include_lunch and not lunch_added and 660 <= current_time <= 900:
-            # Find restaurant near current or previous location
-            search_lat = loc_data["lat"]
-            search_lon = loc_data["lon"]
-            
-            lunch_restaurant = await find_restaurant_near_location(
-                search_lat, search_lon, radius_m=2000
-            )
-            
+        
+            # --- CHANGE IS HERE ---
+            # Instead of awaiting the API call here, we just grab the pre-fetched result
+            lunch_restaurant = lunch_map.get(idx) 
+
             if lunch_restaurant:
                 itinerary_items.append({
                     "id": str(item_id),
@@ -194,11 +237,9 @@ async def generate_itinerary(
                 item_id += 1
                 current_time += 60
                 lunch_added = True
-        
+
         # Add the location to itinerary
         tags = []
-        
-        # Determine tags based on location type
         name_lower = loc.name.lower()
         if any(word in name_lower for word in ["museum", "gallery"]):
             tags.append("Cultural")
@@ -206,7 +247,7 @@ async def generate_itinerary(
             tags.append("Landmark")
         elif any(word in name_lower for word in ["park", "garden"]):
             tags.append("Nature")
-        
+
         itinerary_items.append({
             "id": str(item_id),
             "name": loc.name,
@@ -220,12 +261,12 @@ async def generate_itinerary(
             "lat": loc_data["lat"],
             "lon": loc_data["lon"]
         })
-        
+
         waypoint_coords.append({
             "lat": loc_data["lat"],
             "lng": loc_data["lon"]
         })
-        
+
         item_id += 1
         current_time += loc.duration
     
