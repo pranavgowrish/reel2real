@@ -129,19 +129,26 @@ def search_article_urls(query, max_results=10):
 
 
 
-def extract_video_urls(query, max_results=2):
+def extract_video_urls(query, max_results=0):
     urls = []
-   
-    results = ddg.videos(query, max_results=max_results)
-   
-    for i, result in enumerate(results, 1):
-        url = result.get('content')
-        if url and is_allowed_video_domain(url):
-            urls.append(url)
-            print(f"     {url[:60]}")
-       
-        time.sleep(1)
-       
+    
+    if max_results <= 0:
+        return urls
+    
+    #results = ddg.videos(query, max_results=max_results)
+    
+    try:
+        with DDGS() as ddgs:
+            results = list(ddgs.videos(query, max_results=max_results))
+            for result in results:
+                url = result.get('content')
+                if url and is_allowed_video_domain(url):
+                    urls.append(url)
+                    print(f"     {url[:60]}")
+                
+                #time.sleep(1)
+    except Exception as e:
+        print(f"      Video search error: {e}")
     return urls
 
 
@@ -247,7 +254,7 @@ def multi_thread_scrape_article_for_venues(query, destination, query_blacklist):
     destinations = [destination] * len(article_urls)
     query_blacklists = [query_blacklist] * len(article_urls)
    
-    with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
         venues_results = list(executor.map(scrape_article_for_venues, article_urls, destinations, query_blacklists))
         for venues_list in venues_results:
             all_venues.extend(venues_list)
@@ -257,21 +264,23 @@ def multi_thread_scrape_article_for_venues(query, destination, query_blacklist):
 
 def multi_thread_scrape_video_for_venues(query, destination):
     all_videos = []
-    videos = extract_video_urls(query, max_results=2)
+    videos = extract_video_urls(query, 1)
+
+    return process_video.fully_process(videos[0], destination)
    
-    destinations = [destination] * len(videos)
+    # destinations = [destination] * len(videos)
    
-    with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-        videos_results = list(executor.map(process_video.fully_process, videos, destinations))
-        for videos_result in videos_results:
-            if videos_result is not None:
-                all_videos.extend(videos_result)
+    # with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+    #     videos_results = list(executor.map(process_video.fully_process, videos, destinations))
+    #     for videos_result in videos_results:
+    #         if videos_result is not None:
+    #             all_videos.extend(videos_result)
            
-    return all_videos
+    # return all_videos
 
 
 
-def collect_venues(destination, vibe):
+async def collect_venues(destination, vibe):
     """Main venue collection pipeline"""
     print(f" Searching for {vibe} venues in {destination}...\n")
    
@@ -302,13 +311,16 @@ def collect_venues(destination, vibe):
     articles_list = []
     videos_list = []
        
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        future1 = executor.submit(multi_thread_scrape_article_for_venues, query, destination, query_blacklist)
-        future2 = executor.submit(multi_thread_scrape_video_for_venues, query, destination)
+    # with concurrent.futures.ThreadPoolExecutor() as executor:
+    #     future1 = executor.submit(multi_thread_scrape_article_for_venues, query, destination, query_blacklist)
+    #     future2 = executor.submit(multi_thread_scrape_video_for_venues, query, destination)
 
 
-        articles_list = future1.result()
-        videos_list = future2.result()
+    #     articles_list = future1.result()
+    #     videos_list = future2.result()
+
+    videos_list = multi_thread_scrape_video_for_venues(query, destination)
+    articles_list = multi_thread_scrape_article_for_venues(query, destination, query_blacklist)
    
     venue_counts_articles = Counter(articles_list)
     venue_counts_videos = Counter(videos_list)

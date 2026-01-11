@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { PuzzleLoader } from "@/components/PuzzleLoader";
 import heroImage from "@/assets/hero-travel.jpg";
 
-// Popular website logos for searching animation
 const searchLogos = [
   { name: "Instagram", logo: "https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" },
   { name: "YouTube", logo: "https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg" },
@@ -138,11 +137,9 @@ const Loading = () => {
   const [dataLoaded, setDataLoaded] = useState(false);
 
   useEffect(() => {
-    // Get trip data from localStorage
     const data = localStorage.getItem("tripData");
     
     if (!data) {
-      // No data, redirect to home
       navigate("/");
       return;
     }
@@ -150,7 +147,6 @@ const Loading = () => {
     const parsedTripData = JSON.parse(data);
     setTripData(parsedTripData);
 
-    // Poll for places data to appear in localStorage
     const checkInterval = setInterval(() => {
       const placesData = localStorage.getItem("places");
       
@@ -160,19 +156,15 @@ const Loading = () => {
         try {
           const parsed = JSON.parse(placesData);
           
-          // Extract JSON from the result string (it's wrapped in ```json```)
           let placesResult = parsed.result || parsed;
           
-          // Remove markdown code fences if present
           if (typeof placesResult === 'string') {
             placesResult = placesResult.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
             placesResult = JSON.parse(placesResult);
           }
           
-          // Get confirmed places
           const confirmedPlaces = placesResult.confirmed_places || [];
           
-          // Transform to venue format for PuzzleLoader
           const venueList = confirmedPlaces.map((place: any) => ({
             name: place.name,
             image: place.image,
@@ -181,7 +173,6 @@ const Loading = () => {
           
           setVenues(venueList);
           
-          // Pick a random image from the venues for the main puzzle
           if (venueList.length > 0) {
             const randomIndex = Math.floor(Math.random() * venueList.length);
             setCityImage(venueList[randomIndex].image);
@@ -189,18 +180,15 @@ const Loading = () => {
           
           setDataLoaded(true);
           
-          // Start the phase transitions once data is loaded
           setTimeout(() => setPhase("shortlisting"), 1000);
           setTimeout(() => setPhase("confirming"), 5000);
-          // Don't auto-navigate - let PuzzleLoader handle it after user confirms
           
         } catch (error) {
           console.error("Error parsing places data:", error);
         }
       }
-    }, 500); // Check every 500ms
+    }, 500);
 
-    // Cleanup interval on unmount
     return () => {
       clearInterval(checkInterval);
     };

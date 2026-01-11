@@ -23,7 +23,6 @@ const Index = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-black/60" />
       </div>
 
-      {/* Content */}
       <div className="relative z-10 min-h-screen flex flex-col">
         {/* Header */}
         <header className="w-full py-6 px-8 flex justify-center items-center">

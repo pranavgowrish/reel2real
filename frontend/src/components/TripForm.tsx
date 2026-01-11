@@ -26,6 +26,21 @@ import {
   Users,
 } from "lucide-react";
 
+function getNextWeekend(): DateRange {
+  const today = new Date();
+  const day = today.getDay();
+
+  const daysUntilSaturday = (6 - day + 7) % 7 || 7;
+
+  const saturday = new Date(today);
+  saturday.setDate(today.getDate() + daysUntilSaturday);
+
+  const sunday = new Date(saturday);
+  sunday.setDate(saturday.getDate() + 1);
+
+  return { from: saturday, to: sunday };
+}
+
 const vibes = [
   { id: "adventurous", label: "Adventurous", icon: Compass },
   { id: "chill", label: "Chill & Relaxed", icon: Palmtree },
@@ -42,8 +57,9 @@ export const TripForm = () => {
   const [selectedVibes, setSelectedVibes] = useState<string[]>([]);
   const [budget, setBudget] = useState([50]);
 
-  const [days, setPeople] = useState(2);
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [people, setPeople] = useState(2);
+
+  const [dateRange, setDateRange] = useState<DateRange>(() => getNextWeekend());
 
   const handleSearchSubmit = () => {
     if (location.trim()) setIsExpanded(true);
@@ -61,7 +77,7 @@ export const TripForm = () => {
     const tripData = {
       location,
       vibes: selectedVibes,
-      days,
+      people,
       checkin: dateRange?.from,
       checkout: dateRange?.to,
       budget: budget[0],
@@ -79,7 +95,7 @@ export const TripForm = () => {
           city: location,
           vibe: selectedVibes[0],
           budget: budget[0],
-          days,
+          people,
           startDate: dateRange?.from,
           endDate: dateRange?.to,
         }),
@@ -148,9 +164,7 @@ export const TripForm = () => {
                 </div>
               </div>
 
-              {/* Dates + People (SIDE BY SIDE) */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Dates */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">When are you going?</h3>
 
@@ -161,15 +175,11 @@ export const TripForm = () => {
                         className="w-full justify-start text-left font-sans rounded-xl"
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {dateRange?.from ? (
-                          dateRange.to ? (
-                            <>
-                              {format(dateRange.from, "MMM d, yyyy")} –{" "}
-                              {format(dateRange.to, "MMM d, yyyy")}
-                            </>
-                          ) : (
-                            format(dateRange.from, "MMM d, yyyy")
-                          )
+                        {dateRange?.from && dateRange?.to ? (
+                          <>
+                            {format(dateRange.from, "MMM d, yyyy")} –{" "}
+                            {format(dateRange.to, "MMM d, yyyy")}
+                          </>
                         ) : (
                           <span className="text-muted-foreground">
                             Pick your travel dates
@@ -183,6 +193,7 @@ export const TripForm = () => {
                         mode="range"
                         selected={dateRange}
                         onSelect={setDateRange}
+                        defaultMonth={dateRange?.from}
                         disabled={(date) => date < new Date()}
                         initialFocus
                       />
@@ -190,7 +201,6 @@ export const TripForm = () => {
                   </Popover>
                 </div>
 
-                {/* People */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold flex items-center gap-2">
                     <Users className="h-5 w-5" />
@@ -201,7 +211,7 @@ export const TripForm = () => {
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => setPeople(Math.max(1, days - 1))}
+                      onClick={() => setPeople(Math.max(1, people - 1))}
                       className="h-12 w-12 rounded-full"
                     >
                       <Minus className="h-5 w-5" />
@@ -209,17 +219,17 @@ export const TripForm = () => {
 
                     <div className="text-center">
                       <span className="text-5xl font-bold text-primary">
-                        {days}
+                        {people}
                       </span>
                       <p className="text-muted-foreground">
-                        {days === 1 ? "person" : "people"}
+                        {people === 1 ? "person" : "people"}
                       </p>
                     </div>
 
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => setPeople(Math.min(12, days + 1))}
+                      onClick={() => setPeople(Math.min(12, people + 1))}
                       className="h-12 w-12 rounded-full"
                     >
                       <Plus className="h-5 w-5" />
@@ -228,10 +238,8 @@ export const TripForm = () => {
                 </div>
               </div>
 
-              {/* Budget */}
               <BudgetSlider value={budget} onChange={setBudget} />
 
-              {/* Submit */}
               <Button
                 onClick={handlePlanTrip}
                 size="lg"

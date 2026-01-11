@@ -7,7 +7,6 @@ interface MapEmbedProps {
 }
 
 export const MapEmbed = ({ origin, destination, waypoints }: MapEmbedProps) => {
-  // Use addresses if available, otherwise fall back to coordinates
   const originStr = origin.address 
     ? encodeURIComponent(origin.address)
     : `${origin.lat},${origin.lng}`;
@@ -16,7 +15,6 @@ export const MapEmbed = ({ origin, destination, waypoints }: MapEmbedProps) => {
     ? encodeURIComponent(destination.address)
     : `${destination.lat},${destination.lng}`;
   
-  // For waypoints, use addresses when available
   const waypointsStr = waypoints
     .map((wp) => wp.address ? encodeURIComponent(wp.address) : `${wp.lat},${wp.lng}`)
     .join("|");
