@@ -178,6 +178,15 @@ const Results = () => {
           </Button>
 
           <div className="flex items-center gap-2">
+            <Button 
+              className="bg-primary hover:bg-primary/90"
+              onClick={() => {
+                // TODO: Implement hotel search functionality
+                console.log("Find hotel clicked");
+              }}
+            >
+              Let Us find the best Hotel for your trip!
+            </Button>
             <Button variant="outline" size="icon">
               <Share2 className="h-4 w-4" />
             </Button>

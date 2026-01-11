@@ -154,7 +154,7 @@ const Loading = () => {
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       {/* Logo */}
       <div className="mb-8 justify-center items-center flex ">
-        <img src="public/logo2.png" alt="Logo" className="size-4/12  items-center justify-between" />
+        <img src="logo2.png" alt="Logo" className="size-4/12  items-center justify-between" />
       </div>
 
       {/* Location */}
