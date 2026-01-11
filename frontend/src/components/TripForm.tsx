@@ -85,7 +85,7 @@ export const TripForm = () => {
     localStorage.setItem("itineraryData", JSON.stringify(data));
     
     // Navigate to results page
-    navigate("/result");
+    //navigate("/result");
   } catch (error) {
     console.error("Error fetching itinerary:", error);
     // Optionally navigate to an error page or show an error message

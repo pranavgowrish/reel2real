@@ -28,7 +28,7 @@ const mockVenues = [
 
 const Loading = () => {
   const navigate = useNavigate();
-  const [phase, setPhase] = useState<"searching" | "shortlisting" | "complete">("searching");
+  const [phase, setPhase] = useState<"searching" | "shortlisting" | "confirming" | "complete">("searching");
   const [tripData, setTripData] = useState<any>(null);
 
   useEffect(() => {
@@ -52,19 +52,15 @@ const Loading = () => {
 
     // FIX API: Phase 2: Shortlisting - wait for Flask to curate and shortlist venues
     const timer2 = setTimeout(() => {
-      setPhase("complete");
+      setPhase("confirming");
     }, 7000);
 
     // FIX API: Store itinerary results from Flask API into sessionStorage before navigating
     // Navigate to results
-    const timer3 = setTimeout(() => {
-      navigate("/results");
-    }, 8000);
 
     return () => {
       clearTimeout(timer1);
-      clearTimeout(timer2);
-      clearTimeout(timer3);
+      clearTimeout(timer2); 
     };
   }, [navigate]);
 
