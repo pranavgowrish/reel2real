@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { PuzzleLoader } from "@/components/PuzzleLoader";
-import { Logo } from "@/components/Logo";
 
 // Popular website logos for searching animation
 const searchLogos = [
@@ -154,8 +153,8 @@ const Loading = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       {/* Logo */}
-      <div className="mb-8">
-        <Logo className="scale-125" />
+      <div className="mb-8 justify-center items-center flex ">
+        <img src="public/logo2.png" alt="Logo" className="size-4/12  items-center justify-between" />
       </div>
 
       {/* Location */}
@@ -170,11 +169,7 @@ const Loading = () => {
       {!dataLoaded ? (
         <SearchingAnimation />
       ) : (
-        <PuzzleLoader
-          cityImage={cityImage}
-          venues={venues}
-          phase={phase}
-        />
+        <PuzzleLoader cityImage={cityImage} venues={venues} phase={phase} />
       )}
     </div>
   );

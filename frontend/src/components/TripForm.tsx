@@ -22,10 +22,7 @@ import {
 const vibes = [
   { id: "adventurous", label: "Adventurous", icon: Compass },
   { id: "chill", label: "Chill & Relaxed", icon: Palmtree },
-  { id: "romantic", label: "Romantic", icon: Heart },
   { id: "cultural", label: "Cultural", icon: Sparkles },
-  { id: "family", label: "Family Fun", icon: Users },
-  { id: "instagram", label: "Instagram-worthy", icon: Camera },
   { id: "nightlife", label: "Nightlife", icon: Music },
   { id: "foodie", label: "Foodie", icon: Utensils },
 ];

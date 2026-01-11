@@ -8,6 +8,9 @@ import time
 import threading
 import concurrent.futures
 
+from process_video import *
+
+
 # Load spaCy model
 nlp = spacy.load("en_core_web_sm")
 
@@ -237,7 +240,7 @@ async def collect_venues(destination, vibe):
         articles = search_article_urls(query, max_results=15)
         article_urls = [article['url'] for article in articles]
         
-        videos = extract_video_urls(query, max_results=10)
+        # videos = extract_video_urls(query, max_results=10)
             
         destinations = [destination] * len(article_urls)
         query_blacklists = [query_blacklist] * len(article_urls)
@@ -278,4 +281,5 @@ if __name__ == "__main__":
     print("\nTop destinations:")
     for venue in top_places:
         print(f"{venue['name']} ({venue['score']})")
+
     # print(search_official_website("Eiffel Tower"))

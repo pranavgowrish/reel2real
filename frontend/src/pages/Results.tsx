@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Logo } from "@/components/Logo";
 import { ItineraryCard } from "@/components/ItineraryCard";
 import { MediaSidebar } from "@/components/MediaSidebar";
 import { MapEmbed } from "@/components/MapEmbed";
@@ -178,8 +177,6 @@ const Results = () => {
             New Trip
           </Button>
 
-          <Logo />
-
           <div className="flex items-center gap-2">
             <Button variant="outline" size="icon">
               <Share2 className="h-4 w-4" />
@@ -250,7 +247,9 @@ const Results = () => {
                 ))
               ) : (
                 <div className="text-center py-12">
-                  <p className="text-muted-foreground">No itinerary items found</p>
+                  <p className="text-muted-foreground">
+                    No itinerary items found
+                  </p>
                 </div>
               )}
             </div>
