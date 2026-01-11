@@ -13,7 +13,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
+from dotenv import load_dotenv
+load_dotenv()
 
 # =========================
 # ENDPOINT 

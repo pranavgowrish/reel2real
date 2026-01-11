@@ -1,88 +1,138 @@
 # FILE: backend/twelvelabs/client.py
-# This file talks to Twelve Labs API.
+# Corrected implementation for Twelve Labs API v1.3
 
 import os
 import time
 import requests
 from typing import Dict, Optional
 
+
 BASE_URL = "https://api.twelvelabs.io/v1.3"
 
-def get_api_key():
-    """Get API key from environment, raise error if not found"""
-    api_key = os.getenv("TWELVE_LABS_API_KEY")
-    if not api_key:
-        raise RuntimeError("TWELVE_LABS_API_KEY environment variable not set")
-    return api_key
+api_key = os.getenv("TWELVE_LABS_API_KEY")
+if not api_key:
+    raise RuntimeError("TWELVE_LABS_API_KEY environment variable not set")
+
 
 def get_headers():
     """Get headers with API key"""
     return {
-        "x-api-key": get_api_key(),
+        "x-api-key": api_key,
         "Content-Type": "application/json"
     }
 
 
-def upload_video(file_path: str) -> str:
-    if not os.path.isfile(file_path):
-        raise FileNotFoundError(file_path)
-
-    url = f"{BASE_URL}/assets"
-
-    with open(file_path, "rb") as f:
-        response = requests.post(
-            url,
-            headers={"x-api-key": get_api_key()},
-            data={"method": "direct"},
-            files={"file": (os.path.basename(file_path), f, "video/mp4")},
-            timeout=120
-        )
-
-    if response.status_code != 200:
-        raise RuntimeError(response.text)
-
-    return response.json()["id"]
-
-
 def create_index(name: str) -> str:
+    """Create a new index and return the index ID"""
     url = f"{BASE_URL}/indexes"
     payload = {
-        "name": name,
-        "engines": [
-            {"name": "marengo2.6", "options": ["visual", "conversation"]}
+        "index_name": name,
+        "models": [
+            {"model_name": "marengo2.7", "model_options": ["visual", "audio"]},
+            {"model_name": "pegasus1.2", "model_options": ["visual", "audio"]}
         ]
     }
 
     response = requests.post(url, headers=get_headers(), json=payload)
+    if response.status_code not in [200, 201]:
+        raise RuntimeError(f"Index creation failed: {response.text}")
+
+    result = response.json()
+    # API returns "_id" not "id"
+    return result.get("_id") or result.get("id")
+
+
+def create_task(index_id: str, file_path: str, language: str = "en") -> Dict[str, str]:
+    """
+    Upload and index a video in one operation using the tasks endpoint.
+    This replaces the old upload_video + index_asset pattern.
+    
+    Returns:
+        Dict with keys: 'task_id' and 'video_id' (once ready)
+    """
+    if not os.path.isfile(file_path):
+        raise FileNotFoundError(f"File not found: {file_path}")
+
+    url = f"{BASE_URL}/tasks"
+    
+    # Note: When uploading a file, we don't use JSON content type
+    headers = {"x-api-key": api_key}
+    
+    with open(file_path, "rb") as f:
+        files = {"video_file": (os.path.basename(file_path), f, "video/mp4")}
+        data = {
+            "index_id": index_id,
+            "language": language
+        }
+        
+        response = requests.post(
+            url,
+            headers=headers,
+            data=data,
+            files=files,
+            timeout=120
+        )
+
+    if response.status_code not in [200, 201]:
+        raise RuntimeError(f"Task creation failed: {response.text}")
+
+    result = response.json()
+    # API may return "_id" or "id" for task_id
+    task_id = result.get("_id") or result.get("id")
+    video_id = result.get("video_id")
+    
+    return {
+        "task_id": task_id,
+        "video_id": video_id
+    }
+
+
+def get_task_status(task_id: str) -> Dict:
+    """Get the current status of a video indexing task"""
+    url = f"{BASE_URL}/tasks/{task_id}"
+    response = requests.get(url, headers=get_headers())
+    
     if response.status_code != 200:
-        raise RuntimeError(response.text)
-
-    return response.json()["id"]
-
-
-def index_asset(index_id: str, asset_id: str) -> None:
-    url = f"{BASE_URL}/indexes/{index_id}/indexed-assets"
-    response = requests.post(url, headers=get_headers(), json={"asset_id": asset_id})
-
-    if response.status_code != 200:
-        raise RuntimeError(response.text)
+        raise RuntimeError(f"Failed to get task status: {response.text}")
+    
+    return response.json()
 
 
-def wait_until_indexed(index_id: str, asset_id: str, timeout: int = 300) -> None:
-    url = f"{BASE_URL}/indexes/{index_id}/indexed-assets/{asset_id}"
+def wait_for_task(task_id: str, timeout: int = 600, check_interval: int = 5) -> str:
+    """
+    Wait for a video indexing task to complete.
+    
+    Args:
+        task_id: The task identifier
+        timeout: Maximum time to wait in seconds (default 10 minutes)
+        check_interval: How often to check status in seconds
+    
+    Returns:
+        video_id: The unique identifier of the indexed video
+    """
     start = time.time()
-
+    
     while True:
-        response = requests.get(url, headers=get_headers())
-        status = response.json().get("status")
-
-        if status == "ready":
-            return
-
         if time.time() - start > timeout:
-            raise TimeoutError("Indexing timed out")
-
-        time.sleep(5)
+            raise TimeoutError(f"Task indexing timed out after {timeout}s")
+        
+        task_data = get_task_status(task_id)
+        status = task_data.get("status")
+        
+        print(f"Task {task_id}: {status}")
+        
+        if status == "ready":
+            video_id = task_data.get("video_id")
+            if not video_id:
+                raise RuntimeError("Task completed but no video_id returned")
+            return video_id
+        
+        if status in ["failed", "error"]:
+            error_msg = task_data.get("message", "Unknown error")
+            raise RuntimeError(f"Task failed: {error_msg}")
+        
+        # Status is validating, pending, queued, or indexing
+        time.sleep(check_interval)
 
 
 def analyze_video(
@@ -126,3 +176,33 @@ def analyze_video(
         raise RuntimeError(f"Analysis failed: {response.text}")
     
     return response.json()
+
+
+# Legacy wrapper functions for backward compatibility
+def upload_video(file_path: str) -> str:
+    """
+    DEPRECATED: Use create_task() instead.
+    This function is kept for backward compatibility only.
+    """
+    raise DeprecationWarning(
+        "upload_video() is deprecated. Use create_task() + wait_for_task() instead."
+    )
+
+
+def index_asset(index_id: str, asset_id: str) -> None:
+    """
+    DEPRECATED: No longer needed in v1.3 API.
+    Use create_task() which handles upload + indexing together.
+    """
+    raise DeprecationWarning(
+        "index_asset() is deprecated. Use create_task() which handles indexing automatically."
+    )
+
+
+def wait_until_indexed(index_id: str, asset_id: str, timeout: int = 300) -> None:
+    """
+    DEPRECATED: Use wait_for_task() instead.
+    """
+    raise DeprecationWarning(
+        "wait_until_indexed() is deprecated. Use wait_for_task() instead."
+    )

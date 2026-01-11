@@ -2,6 +2,7 @@ fastapi
 uvicorn
 twelvelabs
 requests
-pytube
+yt-dlp
 typing
 instaloader
+ffmpeg
