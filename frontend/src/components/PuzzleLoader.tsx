@@ -6,6 +6,7 @@ interface Venue {
   name: string;
   image: string;
   id?: string;
+  desc?: string;
 }
 
 interface PuzzleLoaderProps {
@@ -16,36 +17,41 @@ interface PuzzleLoaderProps {
 }
 
 export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoaderProps) => {
-  const [filledPieces, setFilledPieces] = useState<number[]>([]);
   const [activeVenue, setActiveVenue] = useState<number | null>(null);
   const [editableVenues, setEditableVenues] = useState<Venue[]>([]);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editValue, setEditValue] = useState("");
   const [isConfirming, setIsConfirming] = useState(false);
-  const totalPieces = 9;
+  const [revealedPieces, setRevealedPieces] = useState<number[]>([]);
+
+  const ROWS = 3;
+  const COLS = 3;
+  const TOTAL_PIECES = ROWS * COLS;
+
+  // Reveal puzzle pieces one by one
+  useEffect(() => {
+    if (phase === "searching" || phase === "shortlisting") {
+      setRevealedPieces([]);
+      let currentPiece = 0;
+      
+      const interval = setInterval(() => {
+        if (currentPiece < TOTAL_PIECES) {
+          setRevealedPieces(prev => [...prev, currentPiece]);
+          currentPiece++;
+        } else {
+          clearInterval(interval);
+        }
+      }, 500); // Reveal a piece every 500ms
+
+      return () => clearInterval(interval);
+    }
+  }, [phase]);
 
   useEffect(() => {
     if (phase === "confirming") {
       setEditableVenues(venues);
     }
   }, [phase, venues]);
-
-  useEffect(() => {
-    if (phase === "searching" || phase === "shortlisting" || phase === "finalizing") {
-      const interval = setInterval(() => {
-        setFilledPieces((prev) => {
-          if (prev.length >= totalPieces) return prev;
-          const remaining = Array.from({ length: totalPieces }, (_, i) => i).filter(
-            (i) => !prev.includes(i)
-          );
-          if (remaining.length === 0) return prev;
-          const randomIndex = remaining[Math.floor(Math.random() * remaining.length)];
-          return [...prev, randomIndex];
-        });
-      }, 400);
-      return () => clearInterval(interval);
-    }
-  }, [phase]);
 
   useEffect(() => {
     if (phase === "shortlisting" && venues.length > 0) {
@@ -57,12 +63,6 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
       return () => clearInterval(interval);
     }
   }, [phase, venues]);
-
-  const getPiecePosition = (index: number) => {
-    const row = Math.floor(index / 3);
-    const col = index % 3;
-    return { row, col };
-  };
 
   const bubblePositions = [
     { top: "-10%", left: "50%", transform: "translateX(-50%)" },
@@ -111,55 +111,78 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
       const data = await response.json();
       console.log("DATA:", data);
 
-      // Store the API response
-      localStorage.setItem("itineraryData", JSON.stringify(data));
-      
-      // Navigate to results page
-      //navigate("/result");
-    } catch (error) {
-      console.error("Error fetching itinerary:", error);
-      //API hereeee
       if (onConfirm) {
         await onConfirm(editableVenues);
       }
+    } catch (error) {
+      console.error("Error fetching itinerary:", error);
+      if (onConfirm) {
+        await onConfirm(editableVenues);
+      }
+    } finally {
+      setIsConfirming(false);
     }
   };
 
-  return (
-    <div className="relative flex flex-col items-center justify-center min-h-screen p-4">
-      {/* Puzzle Container */}
-      <div className="relative w-72 h-72 md:w-96 md:h-96">
-        <div className="grid grid-cols-3 gap-1 w-full h-full rounded-2xl overflow-hidden shadow-2xl">
-          {Array.from({ length: totalPieces }).map((_, index) => {
-            const { row, col } = getPiecePosition(index);
-            const isFilled = filledPieces.includes(index);
+  // Generate puzzle pieces
+  const renderPuzzlePieces = () => {
+    const pieces = [];
+    
+    for (let i = 0; i < TOTAL_PIECES; i++) {
+      const row = Math.floor(i / COLS);
+      const col = i % COLS;
+      const isRevealed = revealedPieces.includes(i);
+      
+      pieces.push(
+        <motion.div
+          key={i}
+          className="absolute overflow-hidden"
+          style={{
+            width: `${100 / COLS}%`,
+            height: `${100 / ROWS}%`,
+            top: `${(row * 100) / ROWS}%`,
+            left: `${(col * 100) / COLS}%`,
+          }}
+          initial={{ opacity: 0, scale: 0.8, rotateY: -90 }}
+          animate={isRevealed ? {
+            opacity: 1,
+            scale: 1,
+            rotateY: 0,
+          } : {
+            opacity: 0,
+            scale: 0.8,
+            rotateY: -90,
+          }}
+          transition={{
+            duration: 0.6,
+            ease: "easeOut",
+          }}
+        >
+          <div
+            className="w-full h-full"
+            style={{
+              backgroundImage: `url(${cityImage})`,
+              backgroundSize: `${COLS * 100}% ${ROWS * 100}%`,
+              backgroundPosition: `${(col * 100) / (COLS - 1)}% ${(row * 100) / (ROWS - 1)}%`,
+            }}
+          />
+          {/* Piece border for visual effect */}
+          {isRevealed && (
+            <div className="absolute inset-0 border border-white/30 pointer-events-none" />
+          )}
+        </motion.div>
+      );
+    }
+    
+    return pieces;
+  };
 
-            return (
-              <motion.div
-                key={index}
-                className="relative overflow-hidden"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{
-                  opacity: isFilled ? 1 : 0.2,
-                  scale: isFilled ? 1 : 0.95,
-                }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
-              >
-                <div
-                  className="w-full h-full bg-cover bg-no-repeat"
-                  style={{
-                    backgroundImage: `url(${cityImage})`,
-                    backgroundPosition: `${col * 50}% ${row * 50}%`,
-                    backgroundSize: "300%",
-                    filter: isFilled ? "none" : "grayscale(100%)",
-                  }}
-                />
-                {!isFilled && (
-                  <div className="absolute inset-0 bg-muted/60 backdrop-blur-sm" />
-                )}
-              </motion.div>
-            );
-          })}
+  return (
+    <div className="relative flex flex-col items-center justify-center min-h-screen w-full p-4 md:p-8 bg-gradient-to-br from-slate-50 to-slate-100">
+      {/* Puzzle Container - Takes most of the screen */}
+      <div className="relative w-full max-w-5xl aspect-square">
+        <div className="relative w-full h-full rounded-2xl shadow-2xl overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900">
+          {renderPuzzlePieces()}
         </div>
 
         {/* Thought Bubbles */}
@@ -167,7 +190,7 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
           {phase === "shortlisting" && activeVenue !== null && (
             <motion.div
               key={`bubble-${activeVenue}`}
-              className="absolute w-28 md:w-36 p-2 bg-card rounded-xl shadow-xl border-2 border-primary/20"
+              className="absolute w-32 md:w-40 lg:w-48 p-3 bg-white rounded-xl shadow-xl border-2 border-blue-200 z-10"
               style={{
                 ...bubblePositions[activeVenue % bubblePositions.length],
               }}
@@ -192,12 +215,12 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
               <img
                 src={venues[activeVenue].image}
                 alt={venues[activeVenue].name}
-                className="w-full h-16 md:h-20 object-cover rounded-lg mb-1"
+                className="w-full h-20 md:h-24 lg:h-28 object-cover rounded-lg mb-2"
               />
-              <p className="text-xs font-medium text-center truncate text-foreground">
+              <p className="text-xs md:text-sm font-medium text-center truncate text-gray-800">
                 {venues[activeVenue].name}
               </p>
-              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-card rotate-45 border-r-2 border-b-2 border-primary/20" />
+              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-r-2 border-b-2 border-blue-200" />
             </motion.div>
           )}
         </AnimatePresence>
@@ -205,34 +228,39 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
 
       {/* Status Text */}
       <motion.div
-        className="mt-8 text-center"
+        className="mt-8 text-center max-w-2xl"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
         {phase === "searching" && (
           <div className="space-y-2">
             <motion.div
-              className="text-xl font-semibold text-foreground"
+              className="text-2xl md:text-3xl font-semibold text-gray-800"
               animate={{ opacity: [1, 0.5, 1] }}
               transition={{ duration: 1.5, repeat: Infinity }}
             >
               Searching 1,000+ websites...
             </motion.div>
-            <p className="text-muted-foreground">
+            <p className="text-base md:text-lg text-gray-600">
               Finding the best spots for your adventure
             </p>
+            <div className="mt-4">
+              <div className="text-sm text-gray-500">
+                Pieces revealed: {revealedPieces.length} / {TOTAL_PIECES}
+              </div>
+            </div>
           </div>
         )}
         {phase === "shortlisting" && (
           <div className="space-y-2">
             <motion.div
-              className="text-xl font-semibold text-primary"
+              className="text-2xl md:text-3xl font-semibold text-blue-600"
               animate={{ opacity: [1, 0.7, 1] }}
               transition={{ duration: 1, repeat: Infinity }}
             >
               Curating your perfect itinerary...
             </motion.div>
-            <p className="text-muted-foreground">
+            <p className="text-base md:text-lg text-gray-600">
               Optimizing routes for the best experience
             </p>
           </div>
@@ -240,13 +268,13 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
         {phase === "finalizing" && (
           <div className="space-y-2">
             <motion.div
-              className="text-xl font-semibold text-primary"
+              className="text-2xl md:text-3xl font-semibold text-blue-600"
               animate={{ opacity: [1, 0.7, 1] }}
               transition={{ duration: 1, repeat: Infinity }}
             >
               Finalizing your adventure...
             </motion.div>
-            <p className="text-muted-foreground">
+            <p className="text-base md:text-lg text-gray-600">
               Creating the perfect day plan
             </p>
           </div>
@@ -273,18 +301,18 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
               exit={{ opacity: 0 }}
             >
               <motion.div
-                className="bg-card rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden border border-border"
+                className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden border border-gray-200"
                 initial={{ scale: 0.9, y: 20 }}
                 animate={{ scale: 1, y: 0 }}
                 exit={{ scale: 0.9, y: 20 }}
                 transition={{ type: "spring", damping: 25, stiffness: 300 }}
               >
                 {/* Header */}
-                <div className="p-6 border-b border-border">
-                  <h2 className="text-2xl font-bold text-foreground">
+                <div className="p-6 border-b border-gray-200">
+                  <h2 className="text-2xl font-bold text-gray-800">
                     Review Your Destinations
                   </h2>
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <p className="text-sm text-gray-600 mt-1">
                     Edit or remove any destinations before we finalize your itinerary
                   </p>
                 </div>
@@ -295,7 +323,7 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
                     {editableVenues.map((venue, index) => (
                       <motion.div
                         key={venue.id || index}
-                        className="flex items-center gap-4 p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors"
+                        className="flex items-center gap-4 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.05 }}
@@ -319,13 +347,20 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
                                   setEditValue("");
                                 }
                               }}
-                              className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
+                              className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
                               autoFocus
                             />
                           ) : (
-                            <h3 className="font-semibold text-foreground truncate">
-                              {venue.name}
-                            </h3>
+                            <>
+                              <h3 className="font-semibold text-gray-800 truncate">
+                                {venue.name}
+                              </h3>
+                              {venue.desc && (
+                                <p className="text-xs text-gray-600 line-clamp-2 mt-1">
+                                  {venue.desc}
+                                </p>
+                              )}
+                            </>
                           )}
                         </div>
 
@@ -333,7 +368,7 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
                           {editingIndex === index ? (
                             <button
                               onClick={() => handleSaveEdit(index)}
-                              className="p-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                              className="p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors"
                               title="Save"
                             >
                               <X className="w-4 h-4 rotate-45" />
@@ -341,7 +376,7 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
                           ) : (
                             <button
                               onClick={() => handleEditVenue(index)}
-                              className="p-2 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors"
+                              className="p-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
                               title="Edit name"
                             >
                               <Pencil className="w-4 h-4" />
@@ -349,7 +384,7 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
                           )}
                           <button
                             onClick={() => handleRemoveVenue(index)}
-                            className="p-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors"
+                            className="p-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-colors"
                             title="Remove"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -360,7 +395,7 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
                   </div>
 
                   {editableVenues.length === 0 && (
-                    <div className="text-center py-12 text-muted-foreground">
+                    <div className="text-center py-12 text-gray-600">
                       <p>No destinations selected</p>
                       <p className="text-sm mt-2">Add at least one destination to continue</p>
                     </div>
@@ -368,14 +403,14 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
                 </div>
 
                 {/* Footer */}
-                <div className="p-6 border-t border-border flex justify-between items-center">
-                  <p className="text-sm text-muted-foreground">
+                <div className="p-6 border-t border-gray-200 flex justify-between items-center">
+                  <p className="text-sm text-gray-600">
                     {editableVenues.length} {editableVenues.length === 1 ? "destination" : "destinations"} selected
                   </p>
                   <button
                     onClick={handleConfirm}
                     disabled={editableVenues.length === 0 || isConfirming}
-                    className="px-6 py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isConfirming ? "Confirming..." : "Confirm & Continue"}
                   </button>
@@ -388,3 +423,59 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
     </div>
   );
 };
+
+// Demo component to show how it works
+export default function App() {
+  const [phase, setPhase] = useState<"searching" | "shortlisting" | "confirming" | "finalizing" | "complete">("searching");
+  
+  const sampleVenues = [
+    {
+      id: "1",
+      name: "Eiffel Tower",
+      image: "https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?w=400",
+      desc: "Iconic iron lattice tower in Paris"
+    },
+    {
+      id: "2",
+      name: "Louvre Museum",
+      image: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=400",
+      desc: "World's largest art museum"
+    },
+    {
+      id: "3",
+      name: "Arc de Triomphe",
+      image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400",
+      desc: "Famous monument in Paris"
+    },
+    {
+      id: "4",
+      name: "Notre-Dame",
+      image: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=400",
+      desc: "Historic Catholic cathedral"
+    }
+  ];
+
+  useEffect(() => {
+    const timer1 = setTimeout(() => setPhase("shortlisting"), 5000);
+    const timer2 = setTimeout(() => setPhase("confirming"), 11000);
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
+  }, []);
+
+  const handleConfirm = async (selectedVenues: any[]) => {
+    console.log("Confirmed venues:", selectedVenues);
+    setPhase("finalizing");
+    setTimeout(() => setPhase("complete"), 2000);
+  };
+
+  return (
+    <PuzzleLoader
+      cityImage="https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800"
+      venues={sampleVenues}
+      phase={phase}
+      onConfirm={handleConfirm}
+    />
+  );
+}

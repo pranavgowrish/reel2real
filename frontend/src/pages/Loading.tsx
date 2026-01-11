@@ -3,75 +3,158 @@ import { useNavigate } from "react-router-dom";
 import { PuzzleLoader } from "@/components/PuzzleLoader";
 import { Logo } from "@/components/Logo";
 
-// Mock city images based on location
-const cityImages: Record<string, string> = {
-  "san diego": "https://images.unsplash.com/photo-1538097304804-2a1b932466a9?w=800&q=80",
-  "new york": "https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=800&q=80",
-  "los angeles": "https://images.unsplash.com/photo-1580655653885-65763b2597d0?w=800&q=80",
-  "miami": "https://images.unsplash.com/photo-1533106497176-45ae19e68ba2?w=800&q=80",
-  "paris": "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=800&q=80",
-  "tokyo": "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=800&q=80",
-  "london": "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=800&q=80",
-  "default": "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&q=80",
-};
-
-// FIX API: Replace mockVenues with real data from Flask API response
-// The API should return venue data to show in the shortlisting phase animation
-const mockVenues = [
-  { name: "Sunset Cliffs", image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=200&q=80" },
-  { name: "La Jolla Cove", image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=200&q=80" },
-  { name: "Gaslamp Quarter", image: "https://images.unsplash.com/photo-1514565131-fce0801e5785?w=200&q=80" },
-  { name: "Balboa Park", image: "https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=200&q=80" },
-  { name: "USS Midway", image: "https://images.unsplash.com/photo-1569289804428-a123b89a1a5c?w=200&q=80" },
-  { name: "Torrey Pines", image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=200&q=80" },
+// Popular website logos for searching animation
+const searchLogos = [
+  { name: "Instagram", logo: "https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" },
+  { name: "YouTube", logo: "https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg" },
+  { name: "TripAdvisor", logo: "https://upload.wikimedia.org/wikipedia/commons/d/dd/TripAdvisor_Logo.svg" },
+  { name: "Trivago", logo: "https://upload.wikimedia.org/wikipedia/commons/4/44/Trivago_logo.svg" },
+  { name: "Booking.com", logo: "https://upload.wikimedia.org/wikipedia/commons/b/be/Booking.com_logo.svg" },
+  { name: "Airbnb", logo: "https://upload.wikimedia.org/wikipedia/commons/6/69/Airbnb_Logo_B%C3%A9lo.svg" },
+  { name: "Expedia", logo: "https://upload.wikimedia.org/wikipedia/commons/5/5b/Expedia_2012_logo.svg" },
+  { name: "Google", logo: "https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" },
+  { name: "Yelp", logo: "https://upload.wikimedia.org/wikipedia/commons/a/ad/Yelp_Logo.svg" },
+  { name: "Reddit", logo: "https://upload.wikimedia.org/wikipedia/commons/5/58/Reddit_logo_new.svg" },
 ];
+
+const SearchingAnimation = () => {
+  const [visibleLogos, setVisibleLogos] = useState<number[]>([]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // Randomly show 1-2 logos at a time
+      const count = Math.floor(Math.random() * 2) + 1;
+      const indices = Array.from({ length: count }, () => 
+        Math.floor(Math.random() * searchLogos.length)
+      );
+      setVisibleLogos(indices);
+    }, 1200);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="relative w-full max-w-6xl h-[600px] mb-8">
+      {/* Empty puzzle placeholder */}
+      <div className="absolute inset-0 grid grid-cols-3 gap-3 opacity-20">
+        {Array.from({ length: 9 }).map((_, i) => (
+          <div key={i} className="bg-muted rounded-lg border-2 border-dashed border-muted-foreground/30" />
+        ))}
+      </div>
+
+      {/* Animated logos */}
+      {searchLogos.map((logo, index) => {
+        const isVisible = visibleLogos.includes(index);
+        const row = Math.floor(index / 3);
+        const col = index % 3;
+        const top = row * 33.33 + Math.random() * 20 - 10;
+        const left = col * 33.33 + Math.random() * 20 - 10;
+
+        return (
+          <div
+            key={index}
+            className={`absolute transition-all duration-700 ${
+              isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-50'
+            }`}
+            style={{
+              top: `${top}%`,
+              left: `${left}%`,
+            }}
+          >
+            <div className="bg-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2">
+              <img src={logo.logo} alt={logo.name} className="w-8 h-8 object-contain" />
+              <span className="font-semibold text-gray-800 text-sm">{logo.name}</span>
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Searching text */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="text-3xl font-semibold text-muted-foreground animate-pulse">
+          Searching the web...
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Loading = () => {
   const navigate = useNavigate();
   const [phase, setPhase] = useState<"searching" | "shortlisting" | "confirming" | "complete">("searching");
   const [tripData, setTripData] = useState<any>(null);
+  const [venues, setVenues] = useState<any[]>([]);
+  const [cityImage, setCityImage] = useState<string>("");
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   useEffect(() => {
-    // FIX API: Call Flask endpoint GET /api/generate-itinerary-status or similar
-    // This should return the status of itinerary generation
-    // Get trip data from session storage
-    const data = sessionStorage.getItem("tripData");
-    if (data) {
-      setTripData(JSON.parse(data));
-    } else {
+    // Get trip data from localStorage
+    const data = localStorage.getItem("tripData");
+    
+    if (!data) {
       // No data, redirect to home
       navigate("/");
       return;
     }
 
-    // FIX API: Replace hardcoded timers with actual API response times
-    // Phase 1: Searching - wait for Flask to start searching websites
-    const timer1 = setTimeout(() => {
-      setPhase("shortlisting");
-    }, 3000);
+    const parsedTripData = JSON.parse(data);
+    setTripData(parsedTripData);
 
-    // FIX API: Phase 2: Shortlisting - wait for Flask to curate and shortlist venues
-    const timer2 = setTimeout(() => {
-      setPhase("confirming");
-    }, 7000);
+    // Poll for places data to appear in localStorage
+    const checkInterval = setInterval(() => {
+      const placesData = localStorage.getItem("places");
+      
+      if (placesData) {
+        clearInterval(checkInterval);
+        
+        try {
+          const parsed = JSON.parse(placesData);
+          
+          // Extract JSON from the result string (it's wrapped in ```json```)
+          let placesResult = parsed.result || parsed;
+          
+          // Remove markdown code fences if present
+          if (typeof placesResult === 'string') {
+            placesResult = placesResult.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+            placesResult = JSON.parse(placesResult);
+          }
+          
+          // Get confirmed places
+          const confirmedPlaces = placesResult.confirmed_places || [];
+          
+          // Transform to venue format for PuzzleLoader
+          const venueList = confirmedPlaces.map((place: any) => ({
+            name: place.name,
+            image: place.image,
+            desc: place.desc
+          }));
+          
+          setVenues(venueList);
+          
+          // Pick a random image from the venues for the main puzzle
+          if (venueList.length > 0) {
+            const randomIndex = Math.floor(Math.random() * venueList.length);
+            setCityImage(venueList[randomIndex].image);
+          }
+          
+          setDataLoaded(true);
+          
+          // Start the phase transitions once data is loaded
+          setTimeout(() => setPhase("shortlisting"), 1000);
+          setTimeout(() => setPhase("confirming"), 5000);
+          // Don't auto-navigate - let PuzzleLoader handle it after user confirms
+          
+        } catch (error) {
+          console.error("Error parsing places data:", error);
+        }
+      }
+    }, 500); // Check every 500ms
 
-    // FIX API: Store itinerary results from Flask API into sessionStorage before navigating
-    // Navigate to results
-
+    // Cleanup interval on unmount
     return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2); 
+      clearInterval(checkInterval);
     };
   }, [navigate]);
-
-  const getCityImage = () => {
-    if (!tripData?.location) return cityImages.default;
-    const location = tripData.location.toLowerCase();
-    for (const [city, image] of Object.entries(cityImages)) {
-      if (location.includes(city)) return image;
-    }
-    return cityImages.default;
-  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
@@ -88,12 +171,16 @@ const Loading = () => {
         </h2>
       )}
 
-      {/* Puzzle Loader */}
-      <PuzzleLoader
-        cityImage={getCityImage()}
-        venues={mockVenues}
-        phase={phase}
-      />
+      {/* Show searching animation until data is loaded */}
+      {!dataLoaded ? (
+        <SearchingAnimation />
+      ) : (
+        <PuzzleLoader
+          cityImage={cityImage}
+          venues={venues}
+          phase={phase}
+        />
+      )}
     </div>
   );
 };

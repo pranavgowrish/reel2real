@@ -68,13 +68,13 @@ export const TripForm = () => {
   navigate("/loading");
   try {
     const response = await fetch(
-      "https://knight-s-code.onrender.com/api/generate-itinerary",
+      "http://127.0.0.1:8000/confirm",
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(tripData),
+        body: JSON.stringify({city: location, vibe: selectedVibes[0], budget: budget[0]}),
       },
     );
 
@@ -82,7 +82,7 @@ export const TripForm = () => {
     console.log("DATA:", data);
 
     // Store the API response
-    localStorage.setItem("itineraryData", JSON.stringify(data));
+    localStorage.setItem("places", JSON.stringify(data.result));
     
     // Navigate to results page
     //navigate("/result");
