@@ -30,9 +30,9 @@ from twelvelabs.pipeline import analyze, analyze_existing_video
 # =========================
 # TEST DATASET
 # =========================
-TEST_VIDEO_PATH = "videos/_so-jcestGc.mp4" #DELETE 
+TEST_VIDEO_PATH = "videos/VqBRHig7bR4.mp4"  
 TEST_URLS = [
-    "https://www.youtube.com/shorts/_so-jcestGc",
+    "https://youtube.com/shorts/VqBRHig7bR4?si=iABBABS4_79IPwaX"
 ]
 TEST_PROMPTS = [
     """
@@ -54,13 +54,13 @@ def print_separator(title: str):
     print("=" * 60)
 
 def print_success(message: str):
-    print(f"✅ {message}")
+    print(f" {message}")
 
 def print_error(message: str):
-    print(f"❌ {message}")
+    print(f" {message}")
 
 def print_info(message: str):
-    print(f"ℹ️  {message}")
+    print(f"ℹ  {message}")
 
 
 # =========================
@@ -247,9 +247,9 @@ def run_manual_tests():
     Run tests manually (not through pytest).
     This is the old workflow from your original script.
     """
-    print("\n" + "🚀" * 30)
+    print("\n" + "" * 30)
     print("TWELVE LABS MANUAL TEST SUITE")
-    print("🚀" * 30)
+    print("" * 30)
     
     # Test 1: Environment
     print_separator("Manual Test 1: Environment")

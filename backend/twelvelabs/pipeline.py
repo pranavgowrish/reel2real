@@ -1,5 +1,4 @@
 # FILE: backend/twelvelabs/pipeline.py
-# Corrected pipeline implementation
 
 import os
 import time
@@ -47,7 +46,7 @@ def download_videos(urls: List[str], output_dir: str = "videos") -> List[str]:
                               timeout=5)
         ffmpeg_available = result.returncode == 0
     except (FileNotFoundError, subprocess.TimeoutExpired):
-        print("⚠️  Warning: ffmpeg not found. Will download pre-merged formats only.")
+        print("  Warning: ffmpeg not found. Will download pre-merged formats only.")
     
     # yt-dlp options
     if ffmpeg_available:
@@ -80,7 +79,7 @@ def download_videos(urls: List[str], output_dir: str = "videos") -> List[str]:
     }
     
     for i, url in enumerate(urls, 1):
-        print(f"\n📥 Downloading video {i}/{len(urls)}: {url}")
+        print(f"\n Downloading video {i}/{len(urls)}: {url}")
         
         # Detect platform for better handling
         platform = "unknown"
@@ -111,7 +110,7 @@ def download_videos(urls: List[str], output_dir: str = "videos") -> List[str]:
                 # Verify the file was downloaded
                 if os.path.exists(expected_file):
                     file_size = os.path.getsize(expected_file) / (1024 * 1024)
-                    print(f"   ✅ Downloaded: {expected_file} ({file_size:.2f} MB)")
+                    print(f"    Downloaded: {expected_file} ({file_size:.2f} MB)")
                     downloaded_files.append(expected_file)
                 else:
                     # Sometimes yt-dlp names files differently
@@ -124,18 +123,18 @@ def download_videos(urls: List[str], output_dir: str = "videos") -> List[str]:
                     if files:
                         latest_file = max(files, key=os.path.getctime)
                         file_size = os.path.getsize(latest_file) / (1024 * 1024)
-                        print(f"   ✅ Downloaded: {latest_file} ({file_size:.2f} MB)")
+                        print(f"    Downloaded: {latest_file} ({file_size:.2f} MB)")
                         downloaded_files.append(latest_file)
                     else:
                         raise RuntimeError(f"Downloaded file not found: {expected_file}")
         
         except Exception as e:
             error_msg = str(e)
-            print(f"   ❌ Error downloading {url}: {error_msg}")
+            print(f"    Error downloading {url}: {error_msg}")
             
             # Provide helpful error messages
             if "login" in error_msg.lower() or "authentication" in error_msg.lower():
-                print("\n   💡 TIP: This video may require authentication.")
+                print("\n    TIP: This video may require authentication.")
                 print("      Try using cookies from your browser.")
             
             raise RuntimeError(f"Failed to download video from {url}: {error_msg}")
@@ -208,10 +207,10 @@ def analyze(video_urls: List[str], prompt: str, index_name: str = None) -> List[
                 "success": True
             })
             
-            print(f"✓ Video {i} processed successfully")
+            print(f" Video {i} processed successfully")
             
         except Exception as e:
-            print(f"✗ Error processing video {i}: {str(e)}")
+            print(f" Error processing video {i}: {str(e)}")
             results.append({
                 "video_url": url,
                 "video_id": None,
