@@ -186,7 +186,7 @@ def scrape_article_for_venues(url, destination, query_blacklist):
     return venues
 
 
-def collect_venues(destination, vibe):
+async def collect_venues(destination, vibe):
     """Main venue collection pipeline"""
     print(f"🔍 Searching for {vibe} venues in {destination}...\n")
     
