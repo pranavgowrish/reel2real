@@ -4,6 +4,8 @@ duckduckgo-search
 ddgs
 spacy
 time
+playwright
+
 fastapi
 uvicorn
 twelvelabs
