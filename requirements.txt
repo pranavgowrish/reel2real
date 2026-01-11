@@ -12,6 +12,10 @@ typing
 instaloader
 ffmpeg
 google-genai
+httpx
+python-dotenv
+pydantic
+pytest
 fastapi
 uvicorn
 httpx

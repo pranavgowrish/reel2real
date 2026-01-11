@@ -7,8 +7,8 @@ from ddgs import DDGS
 import json
 import itinerary_generator
 
-
-from twelvelabs.pipeline import analyze
+from process_video import process_multiple_videos_from_urls
+from analyze_video import analyze_existing_video, analyze_multiple_videos
 
 app = FastAPI()
 
@@ -28,7 +28,6 @@ load_dotenv()
 client = genai.Client(api_key="AIzaSyB5_Y46cWjFDep50FbvZyF5RMhciGLBTG4")
 
 
-
 @app.post("/example")
 async def example(request: Request):
     body = await request.json()
@@ -46,16 +45,20 @@ async def example(request: Request):
 
 
 # =========================
-# ENDPOINT: VIDEO ANALYSIS
+# ENDPOINT: VIDEO ANALYSIS (Full Pipeline - Download + Upload + Analyze)
 # =========================
 @app.post("/analyze-videos")
 async def analyze_videos(request: Request):
     """
+    Full pipeline: Download videos from URLs, upload to Twelve Labs, and analyze.
+    
     Expected JSON body:
     {
         "video_urls": ["https://youtube.com/...", "https://instagram.com/reel/..."],
         "prompt": "Identify locations or places shown in the video"
     }
+    
+    Returns analysis results for each video.
     """
     try:
         body = await request.json()
@@ -63,10 +66,17 @@ async def analyze_videos(request: Request):
         video_urls = body.get("video_urls")
         prompt = body.get("prompt")
 
+        # Validation
         if not video_urls or not isinstance(video_urls, list):
             return JSONResponse(
                 status_code=400,
                 content={"error": "video_urls must be a non-empty list"}
+            )
+
+        if len(video_urls) == 0:
+            return JSONResponse(
+                status_code=400,
+                content={"error": "video_urls cannot be empty"}
             )
 
         if not prompt or not isinstance(prompt, str):
@@ -75,7 +85,16 @@ async def analyze_videos(request: Request):
                 content={"error": "prompt must be a string"}
             )
 
-        results = analyze(video_urls, prompt)
+        # CHANGED: Use process_multiple_videos_from_urls from process_video.py
+        # This handles: download → upload → index → analyze
+        results = process_multiple_videos_from_urls(
+            video_urls=video_urls,
+            prompt=prompt,
+            index_name=None,  # Auto-generate index name
+            output_dir="videos",
+            temperature=0.2,
+            max_tokens=2000
+        )
 
         return JSONResponse(
             content={
@@ -89,8 +108,69 @@ async def analyze_videos(request: Request):
             status_code=500,
             content={"error": str(e)}
         )
+
+
+# =========================
+# ENDPOINT: ANALYZE EXISTING VIDEOS (No Download/Upload)
+# =========================
+# @app.post("/analyze-existing-videos")
+# async def analyze_existing_videos(request: Request):
+#     """
+#     Analyze videos that are already indexed in Twelve Labs.
+#     Use this when you already have video_ids.
     
-    return JSONResponse(content=message)
+#     Expected JSON body:
+#     {
+#         "video_ids": ["video_id_1", "video_id_2"],
+#         "prompt": "What products are shown in this video?"
+#     }
+#     """
+#     try:
+#         body = await request.json()
+
+#         video_ids = body.get("video_ids")
+#         prompt = body.get("prompt")
+
+#         # Validation
+#         if not video_ids or not isinstance(video_ids, list):
+#             return JSONResponse(
+#                 status_code=400,
+#                 content={"error": "video_ids must be a non-empty list"}
+#             )
+
+#         if len(video_ids) == 0:
+#             return JSONResponse(
+#                 status_code=400,
+#                 content={"error": "video_ids cannot be empty"}
+#             )
+
+#         if not prompt or not isinstance(prompt, str):
+#             return JSONResponse(
+#                 status_code=400,
+#                 content={"error": "prompt must be a string"}
+#             )
+
+#         # Use analyze_multiple_videos from analyze_video.py
+#         # This only does the analysis step (videos already indexed)
+#         results = analyze_multiple_videos(
+#             video_ids=video_ids,
+#             prompt=prompt,
+#             temperature=0.2,
+#             max_tokens=2000
+#         )
+
+#         return JSONResponse(
+#             content={
+#                 "status": "success",
+#                 "results": results
+#             }
+#         )
+
+#     except Exception as e:
+#         return JSONResponse(
+#             status_code=500,
+#             content={"error": str(e)}
+#         )
 
 @app.post("/example")
 async def example(request: Request):
