@@ -5,7 +5,6 @@ import heroImage from "@/assets/hero-travel.jpg";
 const Index = () => {
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Background Image with Overlay */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: `url(${heroImage})` }}
@@ -13,9 +12,7 @@ const Index = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-background/90 via-background/70 to-background/95" />
       </div>
 
-      {/* Content */}
       <div className="relative z-10 min-h-screen flex flex-col">
-        {/* Header */}
         <header className="py-4 flex items-center justify-center px-4">
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -27,9 +24,7 @@ const Index = () => {
           </motion.div>
         </header>
 
-        {/* Main Content */}
         <main className="flex-1 flex flex-col items-center justify-center px-4 pb-48">
-          {/* Description */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -43,7 +38,6 @@ const Index = () => {
             </p>
           </motion.div>
 
-          {/* Headline */}
           <motion.h1
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -57,11 +51,9 @@ const Index = () => {
             <span className="block text-foreground">Into Reality</span>
           </motion.h1>
 
-          {/* Trip Form */}
           <TripForm />
         </main>
 
-        {/* Footer */}
         <footer className="py-4 text-center text-sm text-muted-foreground">
         </footer>
       </div>

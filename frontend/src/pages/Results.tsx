@@ -105,18 +105,15 @@ console.log(lastLocationAddress);
 
   useEffect(() => {
     try {
-      // Get trip data (location, vibes, days, budget)
       const storedTripData = localStorage.getItem("tripData");
       if (storedTripData) {
         setTripData(JSON.parse(storedTripData));
       }
 
-      // Get itinerary data (itinerary items, images, videos, coordinates)
       const storedItineraryData = localStorage.getItem("itineraryData");
       if (storedItineraryData) {
         setItineraryData(JSON.parse(storedItineraryData));
       } else {
-        // If no itinerary data, redirect back to home
         console.error("No itinerary data found");
         navigate("/");
       }
@@ -128,13 +125,10 @@ console.log(lastLocationAddress);
     }
   }, [navigate]);
 
-  // -- build coords with addresses for MapEmbed
   const itineraryItems = itineraryData?.itinerary || [];
 
-  // Simple list of addresses
-  const itemAddresses = itineraryItems.map((i) => i.address); // array of strings
+  const itemAddresses = itineraryItems.map((i) => i.address);
 
-  // Helper: find address by coords (tolerance for floats)
   const findAddressByCoords = (lat: number, lng: number) => {
     const tol = 1e-5;
     const match = itineraryItems.find(
@@ -147,7 +141,6 @@ console.log(lastLocationAddress);
     return match?.address ?? "";
   };
 
-  // Build coords with addresses for MapEmbed
   const originWithAddress = itineraryData?.coordinates.origin
     ? {
         ...itineraryData.coordinates.origin,
@@ -205,7 +198,6 @@ console.log(lastLocationAddress);
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Button
@@ -234,7 +226,6 @@ console.log(lastLocationAddress);
         </div>
       </header>
 
-      {/* Page Header */}
       <div className="container mx-auto px-4 py-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -256,10 +247,8 @@ console.log(lastLocationAddress);
         </motion.div>
       </div>
 
-      {/* Main Content */}
       <main className="container mx-auto px-4 pb-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left Sidebar - Media */}
           <motion.aside
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -274,7 +263,6 @@ console.log(lastLocationAddress);
             </div>
           </motion.aside>
 
-          {/* Center - Itinerary */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -284,7 +272,6 @@ console.log(lastLocationAddress);
             <div className="space-y-3">
               {itineraryData.itinerary && itineraryData.itinerary.length > 0 ? (
                 <>
-                  {/* Hotel card at start */}
                   {hotelData && (
                     <>
                     <ItineraryCard
@@ -306,7 +293,6 @@ console.log(lastLocationAddress);
                     </>
                   )}
 
-                  {/* Regular itinerary items */}
                   {itineraryData.itinerary.map((item, index) => (
                     <ItineraryCard
                       key={item.id}
@@ -319,7 +305,6 @@ console.log(lastLocationAddress);
                     />
                   ))}
 
-                  {/* Hotel  card at end */}
                   {hotelData && (
                     <ItineraryCard
                       item={{
@@ -348,7 +333,6 @@ console.log(lastLocationAddress);
             </div>
           </motion.div>
 
-          {/* Right Sidebar - Map */}
           <motion.aside
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}

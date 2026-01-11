@@ -10,7 +10,6 @@ interface LocationSearchProps {
   placeholder?: string;
 }
 
-// Function to search locations using OpenStreetMap Nominatim
 const searchLocations = async (query: string): Promise<string[]> => {
   if (query.length < 3) return [];
 
