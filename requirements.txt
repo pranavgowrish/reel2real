@@ -1,3 +1,9 @@
+fastapi 
+requests
+beautifulsoup4
+duckduckgo-search
+ddgs
+spacy
 fastapi
 uvicorn
 twelvelabs
@@ -6,3 +12,4 @@ yt-dlp
 typing
 instaloader
 ffmpeg
+google-genai

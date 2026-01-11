@@ -52,17 +52,47 @@ export const TripForm = () => {
     );
   };
 
-  const handlePlanTrip = () => {
-    const tripData = {
-      location,
-      vibes: selectedVibes,
-      days,
-      budget: budget[0],
-    };
-    // Store in sessionStorage for the loading page
-    sessionStorage.setItem("tripData", JSON.stringify(tripData));
-    navigate("/loading");
+  const handlePlanTrip = async () => {
+  const tripData = {
+    location,
+    vibes: selectedVibes,
+    days,
+    budget: budget[0],
   };
+
+  // Store initial trip data
+    localStorage.clear();
+  localStorage.setItem("tripData", JSON.stringify(tripData));
+  
+  // Navigate to loading page immediately
+  navigate("/loading");
+  try {
+    const response = await fetch(
+      "http://127.0.0.1:8000/confirm",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({city: location, vibe: selectedVibes[0], budget: budget[0]}),
+      },
+    );
+
+    const data = await response.json();
+    console.log("DATA:", data);
+
+    // Store the API response
+    localStorage.setItem("places", JSON.stringify(data.result));
+    
+    // Navigate to results page
+    //navigate("/result");
+  } catch (error) {
+    console.error("Error fetching itinerary:", error);
+    // Optionally navigate to an error page or show an error message
+    navigate("/error");
+  }
+};
+
 
   return (
     <motion.div
