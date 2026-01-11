@@ -74,6 +74,13 @@ def is_allowed_video_domain(url):
     return any(allowed in domain for allowed in ALLOWED_VIDEO_DOMAINS)
 
 
+
+def search_official_website(destination):
+    query = f"official booking/reservation website for {destination}"
+    result = ddg.text(query, max_results=1)
+    return result[0].get('href') or result[0].get('link')
+
+
 def search_article_urls(query, max_results=50):
     """Search and filter for scrapeable article URLs"""
     urls = []
@@ -90,7 +97,7 @@ def search_article_urls(query, max_results=50):
                 
                 if url and is_allowed_domain(url):
                     urls.append({'url': url, 'title': title})
-                    print(f"    ✓ {title[:60]}")
+                    print(f"     {title[:60]}")
                     
                     if len(urls) >= max_results:
                         break
@@ -98,7 +105,7 @@ def search_article_urls(query, max_results=50):
         time.sleep(1)
         
     except Exception as e:
-        print(f"    ⚠️  Search error: {e}")
+        print(f"      Search error: {e}")
     
     return urls
 
@@ -112,11 +119,12 @@ def extract_video_urls(query, max_results=20):
         url = result.get('content')
         if url and is_allowed_video_domain(url):
             urls.append(url)
-            print(f"    ✓ {url[:60]}")
+            print(f"     {url[:60]}")
         
         time.sleep(1)
         
     return urls
+
 
 def extract_query_entities(query):
     """Extract location entities from query to filter them out"""
@@ -129,6 +137,7 @@ def extract_query_entities(query):
             # query_places.add(ent.text.strip().title())
     
     return query_places
+
 
 def extract_venues_from_text(text, destination, query_blacklist):
     """Use spaCy NLP to extract venue names from article text"""
@@ -206,14 +215,14 @@ def scrape_article_for_venues(url, destination, query_blacklist):
             print(f"      Found {len(venues)} potential venues")
         
     except Exception as e:
-        print(f"      ✗ Error: {str(e)[:60]}")
+        print(f"       Error: {str(e)[:60]}")
     
     return venues
 
 
 async def collect_venues(destination, vibe):
     """Main venue collection pipeline"""
-    print(f"🔍 Searching for {vibe} venues in {destination}...\n")
+    print(f" Searching for {vibe} venues in {destination}...\n")
     
     queries = build_queries(destination, vibe)
     all_venues = []
@@ -250,38 +259,17 @@ async def collect_venues(destination, vibe):
         for name, count in venue_counts.most_common(30)
     ]
     
-    print(f"✅ Extracted {len(ranked_venues)} unique venues (ranked by mentions)\n")
+    print(f" Extracted {len(ranked_venues)} unique venues (ranked by mentions)\n")
     
     print("Top venues found (ranked by how often they were mentioned):")
     for v in ranked_venues[:10]:
-        print(f"  • {v['name']} - mentioned {v['score']}x across articles")
+        print(f"   {v['name']} - mentioned {v['score']}x across articles")
     print()
     
     return ranked_venues
     # for video in videos:
     #     print(f"    ✓ {video[:60]}")
     # return videos
-
-# def collect_venues2(destination, vibe):
-#     """Main venue collection pipeline"""
-#     print(f"🔍 Searching for {vibe} venues in {destination}...\n")
-    
-#     queries = build_queries(destination, vibe)
-#     all_venues = []
-    
-#     videos = []
-    
-#     for query in queries:
-#         # Extract query entities to filter out
-#         query_blacklist = extract_query_entities(query)
-#         query_blacklist.add(destination.lower())
-#         query_blacklist.add(destination.title())
-        
-#         videos = extract_video_urls(query, max_results=10)
-#     # return ranked_venues
-#     for video in videos:
-#         print(f"    ✓ {video[:60]}")
-#     return videos
 
 
 if __name__ == "__main__":
@@ -290,3 +278,4 @@ if __name__ == "__main__":
     print("\nTop destinations:")
     for venue in top_places:
         print(f"{venue['name']} ({venue['score']})")
+    # print(search_official_website("Eiffel Tower"))
