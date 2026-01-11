@@ -101,7 +101,7 @@ export const TripForm = () => {
     >
       <motion.div
         layout
-        className={`bg-card/80 backdrop-blur-xl rounded-3xl border-2 border-border shadow-2xl p-6 md:p-8 transition-all duration-500 ${
+        className={`bg-card/80 backdrop-blur-xl rounded-3xl border-2 border-border shadow-2xl p-6 md:p-10 transition-all duration-500 ${
           isExpanded ? "max-w-3xl" : ""
         }`}
       >
