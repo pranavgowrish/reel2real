@@ -20,3 +20,4 @@ uvicorn
 httpx
 python-dotenv
 re
+regex 
