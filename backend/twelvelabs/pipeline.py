@@ -58,9 +58,16 @@ def download_videos(urls: List[str], output_dir: str = "videos") -> List[str]:
         # This prioritizes formats that are already in MP4 with audio
         format_str = 'best[ext=mp4]/best'
         merge_format = None
+        
+    def download_range_func(info_dict, ydl):
+        # Return a list of sections to download
+        # Example: Download from 00:00 to 00:30
+        return [{'start_time': 0, 'end_time': 60}]
     
     ydl_opts = {
         'format': format_str,
+        'download_ranges': download_range_func,
+        'force-keyframes-at-cuts': True,
         'outtmpl': os.path.join(output_dir, '%(id)s.%(ext)s'),
         'quiet': False,
         'no_warnings': False,
@@ -103,8 +110,9 @@ def download_videos(urls: List[str], output_dir: str = "videos") -> List[str]:
                 print(f"   Title: {info.get('title', 'Unknown')[:50]}...")
                 if info.get('duration'):
                     print(f"   Duration: {info.get('duration')} seconds")
+                    if info.get('duration') > 60:
+                        print("Video longer than 60 seconds. Will be getting truncated.")
                 print(f"   Downloading...")
-                
                 ydl.download([url])
                 
                 # Verify the file was downloaded
