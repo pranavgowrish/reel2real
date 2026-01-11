@@ -5,15 +5,42 @@ import { Logo } from "@/components/Logo";
 
 // Popular website logos for searching animation
 const searchLogos = [
-  { name: "Instagram", logo: "https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" },
-  { name: "YouTube", logo: "https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg" },
-  { name: "Booking.com", logo: "https://upload.wikimedia.org/wikipedia/commons/b/be/Booking.com_logo.svg" },
-  { name: "Airbnb", logo: "https://upload.wikimedia.org/wikipedia/commons/6/69/Airbnb_Logo_B%C3%A9lo.svg" },
-  { name: "Expedia", logo: "https://upload.wikimedia.org/wikipedia/commons/5/5b/Expedia_2012_logo.svg" },
-  { name: "Google", logo: "https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" },
-  { name: "Yelp", logo: "https://upload.wikimedia.org/wikipedia/commons/a/ad/Yelp_Logo.svg" },
-  {name: "DuckDuckGo", logo: "https://upload.wikimedia.org/wikipedia/en/8/88/DuckDuckGo_logo.svg" },
-  {name: "OpenStreetMap", logo: "https://upload.wikimedia.org/wikipedia/commons/6/6a/OpenStreetMap_logo.svg" },
+  {
+    name: "Instagram",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png",
+  },
+  {
+    name: "YouTube",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg",
+  },
+  {
+    name: "Booking.com",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/b/be/Booking.com_logo.svg",
+  },
+  {
+    name: "Airbnb",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/6/69/Airbnb_Logo_B%C3%A9lo.svg",
+  },
+  {
+    name: "Expedia",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/5/5b/Expedia_2012_logo.svg",
+  },
+  {
+    name: "Google",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg",
+  },
+  {
+    name: "Yelp",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/a/ad/Yelp_Logo.svg",
+  },
+  {
+    name: "DuckDuckGo",
+    logo: "https://upload.wikimedia.org/wikipedia/en/8/88/DuckDuckGo_logo.svg",
+  },
+  {
+    name: "OpenStreetMap",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Openstreetmap_logo.svg/1024px-Openstreetmap_logo.svg.png",
+  },
 ];
 
 const SearchingAnimation = () => {

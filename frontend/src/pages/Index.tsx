@@ -29,7 +29,7 @@ const Index = () => {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 flex flex-col items-center justify-center px-4 pb-12">
+        <main className="flex-1 flex flex-col items-center justify-center px-4 pb-48">
           {/* Description */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
