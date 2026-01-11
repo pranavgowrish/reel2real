@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { TripForm } from "@/components/TripForm";
-// import heroVideo from "@/assets/hero-travel.mp4"; 
+import heroImage from "@/assets/hero-travel.jpg"; 
 import { Compass } from "lucide-react";
 
 const Index = () => {
@@ -8,16 +8,12 @@ const Index = () => {
     <div className="min-h-screen relative overflow-hidden bg-background">
       {/* Background Video with Sophisticated Overlay */}
       <div className="absolute inset-0 z-0">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
+        <image
           className="absolute inset-0 w-full h-full object-cover"
         >
-          {/* <source src={heroVideo} type="video/mp4" /> */}
-          Your browser does not support the video tag.
-        </video>
+          {<source src={heroImage} type="image/jpg" />}
+
+        </image>
         {/* Multilayer overlay: Darker at top/bottom for legibility, lighter in center */}
         <div className="absolute inset-0 bg-black/30" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-black/60" />
