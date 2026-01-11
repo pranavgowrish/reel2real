@@ -26,12 +26,10 @@ import {
   Users,
 } from "lucide-react";
 
-/* -------------------- Helpers -------------------- */
 function getNextWeekend(): DateRange {
   const today = new Date();
-  const day = today.getDay(); // 0 = Sun, 6 = Sat
+  const day = today.getDay();
 
-  // Always choose the *next* Saturday
   const daysUntilSaturday = (6 - day + 7) % 7 || 7;
 
   const saturday = new Date(today);
@@ -43,7 +41,6 @@ function getNextWeekend(): DateRange {
   return { from: saturday, to: sunday };
 }
 
-/* -------------------- Data -------------------- */
 const vibes = [
   { id: "adventurous", label: "Adventurous", icon: Compass },
   { id: "chill", label: "Chill & Relaxed", icon: Palmtree },
@@ -52,7 +49,6 @@ const vibes = [
   { id: "foodie", label: "Foodie", icon: Utensils },
 ];
 
-/* -------------------- Component -------------------- */
 export const TripForm = () => {
   const navigate = useNavigate();
 
@@ -61,10 +57,8 @@ export const TripForm = () => {
   const [selectedVibes, setSelectedVibes] = useState<string[]>([]);
   const [budget, setBudget] = useState([50]);
 
-  // ✅ Correct naming
   const [people, setPeople] = useState(2);
 
-  // ✅ Default = next weekend
   const [dateRange, setDateRange] = useState<DateRange>(() => getNextWeekend());
 
   const handleSearchSubmit = () => {
@@ -169,9 +163,7 @@ export const TripForm = () => {
                 </div>
               </div>
 
-              {/* Dates + People */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Dates */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">When are you going?</h3>
 
@@ -208,7 +200,6 @@ export const TripForm = () => {
                   </Popover>
                 </div>
 
-                {/* People */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold flex items-center gap-2">
                     <Users className="h-5 w-5" />
@@ -246,10 +237,8 @@ export const TripForm = () => {
                 </div>
               </div>
 
-              {/* Budget */}
               <BudgetSlider value={budget} onChange={setBudget} />
 
-              {/* Submit */}
               <Button
                 onClick={handlePlanTrip}
                 size="lg"

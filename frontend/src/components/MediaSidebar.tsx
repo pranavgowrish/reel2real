@@ -9,7 +9,6 @@ interface MediaSidebarProps {
 export const MediaSidebar = ({ images, videos }: MediaSidebarProps) => {
   return (
     <div className="space-y-6">
-      {/* Videos Section */}
       <div className="space-y-3">
         {videos.map((video, index) => (
           <motion.div

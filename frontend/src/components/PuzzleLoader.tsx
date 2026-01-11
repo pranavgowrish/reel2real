@@ -29,7 +29,6 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
   const COLS = 4;
   const TOTAL_PIECES = ROWS * COLS;
 
-  // Reveal puzzle pieces one by one
   useEffect(() => {
     if (phase === "searching" || phase === "shortlisting") {
       setRevealedPieces([]);
@@ -98,7 +97,6 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
   const handleConfirm = async () => {
     setClosed(true);
     setIsConfirming(true);    
-    // Continue revealing remaining puzzle pieces
     const remainingPieces = Array.from({ length: TOTAL_PIECES }, (_, i) => i).filter(
       i => !revealedPieces.includes(i)
     );
@@ -113,7 +111,6 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
       }
     }, 5000);
     
-    // Call onConfirm callback to update phase and close dialog
     if (onConfirm) {
       await onConfirm(editableVenues);
     }
@@ -133,7 +130,6 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
       data = await response.json();
       console.log("DATA:", data);
 
-      // Get the places data from localStorage with proper error handling
       let placesData;
       try {
         const placesString = localStorage.getItem("places");
@@ -143,13 +139,11 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
         placesData = { confirmed_places: [] };
       }
 
-      // Create a mapping of place names to their tags
       const placeTagsMap = (placesData.confirmed_places || []).reduce((map, place) => {
         map[place.name] = place.tag ? [place.tag] : [];
         return map;
       }, {});
 
-      // Get trip data
       let tripData;
       try {
         const tripString = localStorage.getItem("tripData");
@@ -159,20 +153,16 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
         tripData = {};
       }
 
-      // Update itinerary items with correct tags from places
       const itineraryWithCorrectTags = (data?.final?.itinerary || []).map(item => {
-        // If this item's name matches a place, use that place's tag
         if (placeTagsMap[item.name]) {
           return {
             ...item,
             tags: placeTagsMap[item.name]
           };
         }
-        // Otherwise keep existing tags (for restaurants, etc.)
         return item;
       });
 
-      // Save to localStorage
       localStorage.setItem("itineraryData", JSON.stringify({
         itinerary: itineraryWithCorrectTags,
         images: data?.final?.images || [],
@@ -181,19 +171,16 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
         tags: tripData.tags || [],
       }));
 
-      // Redirect to results page after successful API response
       window.location.href = "/results";
       
     } catch (error) {
       console.error("Error fetching itinerary:", error);
-      // Still redirect even on error, or handle error UI here
       window.location.href = "/results";
     } finally {
       setIsConfirming(false);
     }
   };
 
-  // Generate puzzle pieces
   const renderPuzzlePieces = () => {
     const pieces = [];
     
@@ -235,7 +222,6 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
               backgroundPosition: `${(col * 100) / (COLS - 1)}% ${(row * 100) / (ROWS - 1)}%`,
             }}
           />
-          {/* Piece border for visual effect */}
           {isRevealed && (
             <div className="absolute inset-0 border border-white/30 pointer-events-none" />
           )}
@@ -248,13 +234,11 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
 
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen w-full p-4 md:p-8 bg-gradient-to-br from-slate-50 to-slate-100">
-      {/* Puzzle Container - Takes most of the screen */}
       <div className="relative w-full max-w-2xl aspect-square">
         <div className="relative w-full h-full rounded-2xl shadow-2xl overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900">
           {renderPuzzlePieces()}
         </div>
 
-        {/* Thought Bubbles */}
         <AnimatePresence mode="wait">
           {(phase === "shortlisting" || phase === "finalizing") && activeVenue !== null && (
             <motion.div
@@ -295,7 +279,6 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
         </AnimatePresence>
       </div>
 
-      {/* Status Text */}
       <motion.div
         className="mt-8 text-center max-w-2xl"
         initial={{ opacity: 0 }}
@@ -350,19 +333,15 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
         )}
       </motion.div>
 
-      {/* Confirmation Modal */}
       <AnimatePresence>
         {phase === "confirming" && closed==false && (
           <>
-            {/* Backdrop */}
             <motion.div
               className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             />
-
-            {/* Modal */}
             <motion.div
               className="fixed inset-0 flex items-center justify-center z-50 p-4"
               initial={{ opacity: 0 }}
@@ -376,7 +355,6 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
                 exit={{ scale: 0.9, y: 20 }}
                 transition={{ type: "spring", damping: 25, stiffness: 300 }}
               >
-                {/* Header */}
                 <div className="p-6 border-b border-gray-200">
                   <h2 className="text-2xl font-bold text-gray-800">
                     Review Your Destinations
@@ -385,8 +363,6 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
                     Edit or remove any destinations before we finalize your itinerary
                   </p>
                 </div>
-
-                {/* Venue List */}
                 <div className="p-6 overflow-y-auto max-h-96">
                   <div className="space-y-3">
                     {editableVenues.map((venue, index) => (
@@ -470,8 +446,6 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
                     </div>
                   )}
                 </div>
-
-                {/* Footer */}
                 <div className="p-6 border-t border-gray-200 flex justify-between items-center">
                   <p className="text-sm text-gray-600">
                     {editableVenues.length} {editableVenues.length === 1 ? "destination" : "destinations"} selected
@@ -493,7 +467,6 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
   );
 };
 
-// Demo component to show how it works
 export default function App() {
   const [phase, setPhase] = useState<"searching" | "shortlisting" | "confirming" | "finalizing" | "complete">("searching");
   
@@ -536,7 +509,6 @@ export default function App() {
   const handleConfirm = async (selectedVenues: any[]) => {
     console.log("Confirmed venues:", selectedVenues);
     setPhase("finalizing");
-    // The API call and redirect now happen in PuzzleLoader's handleConfirm
   };
 
   return (

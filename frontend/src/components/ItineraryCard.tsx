@@ -36,17 +36,14 @@ const tagColors: Record<string, string> = {
 };
 
 export const ItineraryCard = ({ item, index, isLast }: ItineraryCardProps) => {
-  // Get image from localStorage (places data)
 const getPlaceImage = () => {
   if (item.image) return item.image;
   
   try {
     const placesString = localStorage.getItem("places");
     if (placesString) {
-      // First parse to get the string
       let placesData = JSON.parse(placesString);
       
-      // Check if it's still a string (double-encoded), parse again
       if (typeof placesData === 'string') {
         placesData = JSON.parse(placesData);
       }
@@ -75,13 +72,11 @@ const getPlaceImage = () => {
       transition={{ delay: index * 0.1 }}
       className="relative"
     >
-      {/* Timeline connector */}
       {!isLast && (
         <div className="absolute left-6 top-16 bottom-0 w-0.5 bg-gradient-to-b from-primary/50 to-primary/10" />
       )}
 
       <div className="flex gap-3">
-        {/* Time indicator - more compact */}
         <div className="flex flex-col items-center flex-shrink-0">
           <div
             className={cn(
@@ -104,19 +99,14 @@ const getPlaceImage = () => {
           </span>
         </div>
 
-        {/* Card content with image */}
         <div className="flex-1 flex gap-3">
-          {/* Left: Text content */}
           <div className="flex-1 bg-card/50 rounded-xl border border-border/50 p-3 hover:bg-card hover:shadow-md transition-all duration-200">
             <div className="space-y-3">
-              {/* Title */}
               <div>
                 <h4 className="font-semibold text-foreground text-sm">
                   {item.name}
                 </h4>
               </div>
-
-              {/* Duration and Opening Hours in one row */}
               <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
                 {item.duration && (
                   <div className="flex items-center gap-1">
@@ -136,15 +126,11 @@ const getPlaceImage = () => {
                   </Badge>
                 )}
               </div>
-
-              {/* Address - minimal */}
               {item.address && (
                 <p className="text-xs text-muted-foreground/80 leading-snug">
                   {item.address}
                 </p>
               )}
-
-              {/* Tags - inline */}
               {item.tags && item.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1">
                   {item.tags.map((tag) => (
@@ -161,8 +147,6 @@ const getPlaceImage = () => {
                   ))}
                 </div>
               )}
-
-              {/* Reserve Button */}
               <Button
                 size="sm"
                 className="w-full h-8 text-xs"
@@ -173,8 +157,6 @@ const getPlaceImage = () => {
               </Button>
             </div>
           </div>
-
-          {/* Right: Image from localStorage */}
           {placeImage && (
             <div className="flex-shrink-0 w-28 h-28 rounded-lg overflow-hidden border border-border/50 shadow-md">
               <img
@@ -182,7 +164,6 @@ const getPlaceImage = () => {
                 alt={item.name}
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  // Hide image if it fails to load
                   (e.target as HTMLImageElement).style.display = "none";
                 }}
               />
