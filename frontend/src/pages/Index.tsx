@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import Logo from "@/public/logo.png";
 import { TripForm } from "@/components/TripForm";
 import heroImage from "@/assets/hero-travel.jpg";
 
