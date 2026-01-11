@@ -96,19 +96,19 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
 
   const handleConfirm = async () => {
     setIsConfirming(true);
+    let data: any = null; // Declare data outside try-catch
     try {
       const response = await fetch(
-        "https://knight-s-code.onrender.com/api/generate-itinerary",
+        "http://127.0.0.1:8000/itin",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ selectedVenues: editableVenues }),
-        },
+        body: JSON.stringify({ city: localStorage.getItem("tripData") ? JSON.parse(localStorage.getItem("tripData") || '{}').location : '', places: editableVenues.map(v => v.name) }),},
       );
 
-      const data = await response.json();
+      data = await response.json();
       console.log("DATA:", data);
 
       if (onConfirm) {
@@ -120,6 +120,39 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
         await onConfirm(editableVenues);
       }
     } finally {
+// Get the places data from localStorage
+const placesData = JSON.parse(localStorage.getItem("places") || '{"confirmed_places":[]}');
+
+// Create a mapping of place names to their tags
+const placeTagsMap = placesData.confirmed_places.reduce((map, place) => {
+  map[place.name] = place.tag ? [place.tag] : [];
+  return map;
+}, {});
+
+// Get trip data
+const tripData = JSON.parse(localStorage.getItem("tripData") || '{}');
+
+// Update itinerary items with correct tags from places
+const itineraryWithCorrectTags = (data.final.itinerary || []).map(item => {
+  // If this item's name matches a place, use that place's tag
+  if (placeTagsMap[item.name]) {
+    return {
+      ...item,
+      tags: placeTagsMap[item.name]
+    };
+  }
+  // Otherwise keep existing tags (for restaurants, etc.)
+  return item;
+});
+
+// Save to localStorage
+localStorage.setItem("itineraryData", JSON.stringify({
+  itinerary: itineraryWithCorrectTags,
+  images: data.final.images || [],
+  videos: data.final.videos || [],
+  coordinates: data.final.coordinates || {},
+  tags: tripData.tags || [],
+}));
       setIsConfirming(false);
     }
   };

@@ -12,3 +12,8 @@ pytube
 typing
 instaloader
 google-genai
+fastapi
+uvicorn
+httpx
+python-dotenv
+pydantic

@@ -67,18 +67,19 @@ async def generate_itinerary(
         
         if location_data:
             # Use default duration based on location type
-            duration = 60  # Default 1 hour
+            duration = 120  # Default 1 hour
             name_lower = name.lower()
             
             # Adjust duration based on location type
-            if any(word in name_lower for word in ["museum", "gallery"]):
-                duration = 180  # 3 hours for museums
-            elif any(word in name_lower for word in ["tower", "monument"]):
-                duration = 90  # 1.5 hours for towers/monuments
-            elif any(word in name_lower for word in ["park", "garden"]):
-                duration = 120  # 2 hours for parks
-            elif any(word in name_lower for word in ["hotel", "hostel"]):
+            # if any(word in name_lower for word in ["museum", "gallery"]):
+            #     duration = 180  # 3 hours for museums
+            # elif any(word in name_lower for word in ["tower", "monument"]):
+            #     duration = 90  # 1.5 hours for towers/monuments
+            # elif any(word in name_lower for word in ["park", "garden"]):
+            #     duration = 120  # 2 hours for parks
+            if any(word in name_lower for word in ["hotel", "hostel"]):
                 duration = 0  # No duration for hotel
+
             
             locations_data.append({
                 "name": location_data["name"],
@@ -122,7 +123,7 @@ async def generate_itinerary(
         start_time_minutes,
         return_to_hotel=False,  # We'll handle meals and hotel return manually
         lunch_window=(720, 900),  # 12:00 PM - 3:00 PM
-        lunch_duration=60,
+        lunch_duration=90,
         restaurant_locations=[]
     )
     
@@ -228,14 +229,14 @@ async def generate_itinerary(
         
         if dinner_restaurant:
             # Aim for dinner around 7-8 PM
-            if current_time < 1140:
+            if current_time < 1080:
                 current_time = 1260  # 7:00 PM
             
             itinerary_items.append({
                 "id": str(item_id),
                 "name": dinner_restaurant["name"],
                 "time": format_time_12hr(current_time),
-                "duration": "1 hour",
+                "duration": "2 hour",
                 "address": dinner_restaurant.get("address", ""),
                 "openingHours": f"{format_time_12hr(dinner_restaurant.get('open_time', 720))} - {format_time_12hr(dinner_restaurant.get('close_time', 1320))}",
                 "tags": ["Dinner"],
@@ -278,25 +279,28 @@ async def generate_itinerary(
     return result
 
 
-# Example usage
+# Testing Function***
 async def main():
-    """Example usage of the itinerary generator."""
+    """Example usage of the itinerary generator with command-line arguments."""
+    import argparse
     
-    # Example 1: Paris itinerary
-    location_names = [
-        "Hotel Ritz Paris",  # Hotel (starting point)
-        "Eiffel Tower",
-        "Louvre Museum",
-        "Notre-Dame de Paris",
-        "Arc de Triomphe"
-    ]
+    parser = argparse.ArgumentParser(description='Generate a travel itinerary')
+    parser.add_argument('locations', nargs='+', help='List of location names (first one is hotel)')
+    parser.add_argument('--city', default='Paris, France', help='City name (default: Paris, France)')
+    parser.add_argument('--start-time', type=int, default=540, help='Start time in minutes from midnight (default: 540 = 9:00 AM)')
+    parser.add_argument('--hotel-index', type=int, default=0, help='Index of hotel in location list (default: 0)')
     
-    print("Generating itinerary for Paris...")
+    args = parser.parse_args()
+    
+    print(f"Generating itinerary for {args.city}...")
+    print(f"Locations: {', '.join(args.locations)}")
+    print()
+    
     itinerary = await generate_itinerary(
-        location_names,
-        city="Paris, France",
-        start_time_minutes=540,  # 9:00 AM
-        hotel_index=0
+        args.locations,
+        city=args.city,
+        start_time_minutes=args.start_time,
+        hotel_index=args.hotel_index
     )
     
     print("\n=== ITINERARY ===")

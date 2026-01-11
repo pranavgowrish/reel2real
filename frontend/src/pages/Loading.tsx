@@ -7,14 +7,13 @@ import { Logo } from "@/components/Logo";
 const searchLogos = [
   { name: "Instagram", logo: "https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" },
   { name: "YouTube", logo: "https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg" },
-  { name: "TripAdvisor", logo: "https://upload.wikimedia.org/wikipedia/commons/d/dd/TripAdvisor_Logo.svg" },
-  { name: "Trivago", logo: "https://upload.wikimedia.org/wikipedia/commons/4/44/Trivago_logo.svg" },
   { name: "Booking.com", logo: "https://upload.wikimedia.org/wikipedia/commons/b/be/Booking.com_logo.svg" },
   { name: "Airbnb", logo: "https://upload.wikimedia.org/wikipedia/commons/6/69/Airbnb_Logo_B%C3%A9lo.svg" },
   { name: "Expedia", logo: "https://upload.wikimedia.org/wikipedia/commons/5/5b/Expedia_2012_logo.svg" },
   { name: "Google", logo: "https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" },
   { name: "Yelp", logo: "https://upload.wikimedia.org/wikipedia/commons/a/ad/Yelp_Logo.svg" },
-  { name: "Reddit", logo: "https://upload.wikimedia.org/wikipedia/commons/5/58/Reddit_logo_new.svg" },
+  {name: "DuckDuckGo", logo: "https://upload.wikimedia.org/wikipedia/en/8/88/DuckDuckGo_logo.svg" },
+  {name: "OpenStreetMap", logo: "https://upload.wikimedia.org/wikipedia/commons/6/6a/OpenStreetMap_logo.svg" },
 ];
 
 const SearchingAnimation = () => {
@@ -50,7 +49,7 @@ const SearchingAnimation = () => {
         const top = row * 33.33 + Math.random() * 20 - 10;
         const left = col * 33.33 + Math.random() * 20 - 10;
 
-        return (
+return (
           <div
             key={index}
             className={`absolute transition-all duration-700 ${
@@ -61,10 +60,7 @@ const SearchingAnimation = () => {
               left: `${left}%`,
             }}
           >
-            <div className="bg-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2">
-              <img src={logo.logo} alt={logo.name} className="w-8 h-8 object-contain" />
-              <span className="font-semibold text-gray-800 text-sm">{logo.name}</span>
-            </div>
+            <img src={logo.logo} alt={logo.name} className="w-24 h-24 object-contain" />
           </div>
         );
       })}

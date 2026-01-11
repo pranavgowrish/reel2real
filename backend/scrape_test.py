@@ -257,10 +257,10 @@ async def collect_venues(destination, vibe):
         print(f"  • {v['name']} - mentioned {v['score']}x across articles")
     print()
     
-    # return ranked_venues
-    for video in videos:
-        print(f"    ✓ {video[:60]}")
-    return videos
+    return ranked_venues
+    # for video in videos:
+    #     print(f"    ✓ {video[:60]}")
+    # return videos
 
 # def collect_venues2(destination, vibe):
 #     """Main venue collection pipeline"""
