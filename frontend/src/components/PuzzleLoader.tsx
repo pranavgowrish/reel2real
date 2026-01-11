@@ -23,9 +23,10 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
   const [editValue, setEditValue] = useState("");
   const [isConfirming, setIsConfirming] = useState(false);
   const [revealedPieces, setRevealedPieces] = useState<number[]>([]);
+  const [closed, setClosed] = useState(false);
 
-  const ROWS = 3;
-  const COLS = 3;
+  const ROWS = 4;
+  const COLS = 4;
   const TOTAL_PIECES = ROWS * COLS;
 
   // Reveal puzzle pieces one by one
@@ -41,7 +42,7 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
         } else {
           clearInterval(interval);
         }
-      }, 500); // Reveal a piece every 500ms
+      }, 1000);
 
       return () => clearInterval(interval);
     }
@@ -54,7 +55,7 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
   }, [phase, venues]);
 
   useEffect(() => {
-    if (phase === "shortlisting" && venues.length > 0) {
+    if ((phase === "shortlisting" || phase === "finalizing") && venues.length > 0) {
       let index = 0;
       const interval = setInterval(() => {
         setActiveVenue(index);
@@ -95,64 +96,99 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
   };
 
   const handleConfirm = async () => {
-    setIsConfirming(true);
-    let data: any = null; // Declare data outside try-catch
+    setClosed(true);
+    setIsConfirming(true);    
+    // Continue revealing remaining puzzle pieces
+    const remainingPieces = Array.from({ length: TOTAL_PIECES }, (_, i) => i).filter(
+      i => !revealedPieces.includes(i)
+    );
+    
+    let pieceIndex = 0;
+    const revealInterval = setInterval(() => {
+      if (pieceIndex < remainingPieces.length) {
+        setRevealedPieces(prev => [...prev, remainingPieces[pieceIndex]]);
+        pieceIndex++;
+      } else {
+        clearInterval(revealInterval);
+      }
+    }, 5000);
+    
+    // Call onConfirm callback to update phase and close dialog
+    if (onConfirm) {
+      await onConfirm(editableVenues);
+    }
+    
+    let data: any = null;
     try {
-      const response = await fetch(
-        "http://127.0.0.1:8000/itin",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        body: JSON.stringify({ city: localStorage.getItem("tripData") ? JSON.parse(localStorage.getItem("tripData") || '{}').location : '', places: editableVenues.map(v => v.name) }),},
-      );
+
+      const response = await fetch("http://127.0.0.1:8000/itin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          city: localStorage.getItem("tripData") ? JSON.parse(localStorage.getItem("tripData") || '{}').location : '', 
+          places: editableVenues.map(v => v.name) 
+        }),
+      });
 
       data = await response.json();
       console.log("DATA:", data);
 
-      if (onConfirm) {
-        await onConfirm(editableVenues);
+      // Get the places data from localStorage with proper error handling
+      let placesData;
+      try {
+        const placesString = localStorage.getItem("places");
+        placesData = placesString ? JSON.parse(placesString) : { confirmed_places: [] };
+      } catch (e) {
+        console.error("Error parsing places data:", e);
+        placesData = { confirmed_places: [] };
       }
+
+      // Create a mapping of place names to their tags
+      const placeTagsMap = (placesData.confirmed_places || []).reduce((map, place) => {
+        map[place.name] = place.tag ? [place.tag] : [];
+        return map;
+      }, {});
+
+      // Get trip data
+      let tripData;
+      try {
+        const tripString = localStorage.getItem("tripData");
+        tripData = tripString ? JSON.parse(tripString) : {};
+      } catch (e) {
+        console.error("Error parsing trip data:", e);
+        tripData = {};
+      }
+
+      // Update itinerary items with correct tags from places
+      const itineraryWithCorrectTags = (data?.final?.itinerary || []).map(item => {
+        // If this item's name matches a place, use that place's tag
+        if (placeTagsMap[item.name]) {
+          return {
+            ...item,
+            tags: placeTagsMap[item.name]
+          };
+        }
+        // Otherwise keep existing tags (for restaurants, etc.)
+        return item;
+      });
+
+      // Save to localStorage
+      localStorage.setItem("itineraryData", JSON.stringify({
+        itinerary: itineraryWithCorrectTags,
+        images: data?.final?.images || [],
+        videos: data?.final?.videos || [],
+        coordinates: data?.final?.coordinates || {},
+        tags: tripData.tags || [],
+      }));
+
+      // Redirect to results page after successful API response
+      window.location.href = "/results";
+      
     } catch (error) {
       console.error("Error fetching itinerary:", error);
-      if (onConfirm) {
-        await onConfirm(editableVenues);
-      }
+      // Still redirect even on error, or handle error UI here
+      window.location.href = "/results";
     } finally {
-// Get the places data from localStorage
-const placesData = JSON.parse(localStorage.getItem("places") || '{"confirmed_places":[]}');
-
-// Create a mapping of place names to their tags
-const placeTagsMap = placesData.confirmed_places.reduce((map, place) => {
-  map[place.name] = place.tag ? [place.tag] : [];
-  return map;
-}, {});
-
-// Get trip data
-const tripData = JSON.parse(localStorage.getItem("tripData") || '{}');
-
-// Update itinerary items with correct tags from places
-const itineraryWithCorrectTags = (data.final.itinerary || []).map(item => {
-  // If this item's name matches a place, use that place's tag
-  if (placeTagsMap[item.name]) {
-    return {
-      ...item,
-      tags: placeTagsMap[item.name]
-    };
-  }
-  // Otherwise keep existing tags (for restaurants, etc.)
-  return item;
-});
-
-// Save to localStorage
-localStorage.setItem("itineraryData", JSON.stringify({
-  itinerary: itineraryWithCorrectTags,
-  images: data.final.images || [],
-  videos: data.final.videos || [],
-  coordinates: data.final.coordinates || {},
-  tags: tripData.tags || [],
-}));
       setIsConfirming(false);
     }
   };
@@ -213,14 +249,14 @@ localStorage.setItem("itineraryData", JSON.stringify({
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen w-full p-4 md:p-8 bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Puzzle Container - Takes most of the screen */}
-      <div className="relative w-full max-w-5xl aspect-square">
+      <div className="relative w-full max-w-2xl aspect-square">
         <div className="relative w-full h-full rounded-2xl shadow-2xl overflow-hidden bg-gradient-to-br from-gray-800 to-gray-900">
           {renderPuzzlePieces()}
         </div>
 
         {/* Thought Bubbles */}
         <AnimatePresence mode="wait">
-          {phase === "shortlisting" && activeVenue !== null && (
+          {(phase === "shortlisting" || phase === "finalizing") && activeVenue !== null && (
             <motion.div
               key={`bubble-${activeVenue}`}
               className="absolute w-32 md:w-40 lg:w-48 p-3 bg-white rounded-xl shadow-xl border-2 border-blue-200 z-10"
@@ -316,7 +352,7 @@ localStorage.setItem("itineraryData", JSON.stringify({
 
       {/* Confirmation Modal */}
       <AnimatePresence>
-        {phase === "confirming" && (
+        {phase === "confirming" && closed==false && (
           <>
             {/* Backdrop */}
             <motion.div
@@ -500,7 +536,7 @@ export default function App() {
   const handleConfirm = async (selectedVenues: any[]) => {
     console.log("Confirmed venues:", selectedVenues);
     setPhase("finalizing");
-    setTimeout(() => setPhase("complete"), 2000);
+    // The API call and redirect now happen in PuzzleLoader's handleConfirm
   };
 
   return (

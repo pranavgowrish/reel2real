@@ -35,11 +35,23 @@ def format_duration(minutes: int) -> str:
     return f"{hours} hour{'s' if hours > 1 else ''} {mins} minutes"
 
 
+def can_visit_location(arrival_time: int, duration: int, open_time: int, close_time: int) -> bool:
+    """Check if a location can be visited within its opening hours."""
+    # If open 24/7 (open_time=0, close_time=1440), always visitable
+    if open_time == 0 and close_time == 1440:
+        return True
+    
+    # Check if we can arrive after opening and finish before closing
+    earliest_start = max(arrival_time, open_time)
+    departure_time = earliest_start + duration
+    
+    return departure_time <= close_time
+
+
 async def generate_itinerary(
     location_names: List[str],
     city: str = "Paris, France",
     start_time_minutes: int = 540,  # 9:00 AM default
-    hotel_index: int = 0,  # First location is hotel by default
     include_lunch: bool = True,
     include_dinner: bool = True
 ) -> Dict:
@@ -50,7 +62,6 @@ async def generate_itinerary(
         location_names: List of location names (e.g., ["Eiffel Tower", "Louvre Museum"])
         city: City name for location search context (e.g., "Paris, France")
         start_time_minutes: Starting time in minutes from midnight (540 = 9:00 AM)
-        hotel_index: Index of the hotel in the location list (default 0)
         include_lunch: Whether to automatically add lunch
         include_dinner: Whether to automatically add dinner
     
@@ -67,19 +78,16 @@ async def generate_itinerary(
         
         if location_data:
             # Use default duration based on location type
-            duration = 120  # Default 1 hour
+            duration = 60  # Default 1 hour
             name_lower = name.lower()
             
             # Adjust duration based on location type
-            # if any(word in name_lower for word in ["museum", "gallery"]):
-            #     duration = 180  # 3 hours for museums
-            # elif any(word in name_lower for word in ["tower", "monument"]):
-            #     duration = 90  # 1.5 hours for towers/monuments
-            # elif any(word in name_lower for word in ["park", "garden"]):
-            #     duration = 120  # 2 hours for parks
-            if any(word in name_lower for word in ["hotel", "hostel"]):
-                duration = 0  # No duration for hotel
-
+            if any(word in name_lower for word in ["museum", "gallery"]):
+                duration = 180  # 3 hours for museums
+            elif any(word in name_lower for word in ["tower", "monument"]):
+                duration = 90  # 1.5 hours for towers/monuments
+            elif any(word in name_lower for word in ["park", "garden", "canyon", "dam"]):
+                duration = 120  # 2 hours for parks/outdoor attractions
             
             locations_data.append({
                 "name": location_data["name"],
@@ -119,11 +127,11 @@ async def generate_itinerary(
     route_indices, end_time, meal_times = build_itinerary(
         locations,
         travel_matrix,
-        hotel_index,
+        0,  # Starting index (not used as hotel anymore)
         start_time_minutes,
-        return_to_hotel=False,  # We'll handle meals and hotel return manually
+        return_to_hotel=False,
         lunch_window=(720, 900),  # 12:00 PM - 3:00 PM
-        lunch_duration=90,
+        lunch_duration=60,
         restaurant_locations=[]
     )
     
@@ -132,9 +140,11 @@ async def generate_itinerary(
     current_time = start_time_minutes
     lunch_added = False
     item_id = 1
+    skipped_locations = []
     
-    # Track coordinates for mapping
+    # Track coordinates for mapping (avoid duplicates)
     waypoint_coords = []
+    seen_coords = set()
     
     for i, idx in enumerate(route_indices):
         loc_data = locations_data[idx]
@@ -146,7 +156,31 @@ async def generate_itinerary(
             travel_time = travel_matrix[prev_idx][idx]
             current_time += travel_time
         
-        # Wait for opening if necessary
+        # Check if location can be visited within opening hours
+        if not can_visit_location(current_time, loc.duration, loc.open, loc.close):
+            # Try waiting until opening time
+            if current_time < loc.open:
+                # Wait for opening
+                wait_time = loc.open - current_time
+                if wait_time <= 120:  # Only wait up to 2 hours
+                    current_time = loc.open
+                else:
+                    # Too long to wait, skip this location
+                    skipped_locations.append({
+                        "name": loc.name,
+                        "reason": f"Would arrive at {format_time_12hr(current_time)}, opens at {format_time_12hr(loc.open)} ({wait_time} min wait)"
+                    })
+                    continue
+            else:
+                # Would arrive after closing or can't finish before closing
+                departure_time = current_time + loc.duration
+                skipped_locations.append({
+                    "name": loc.name,
+                    "reason": f"Would close at {format_time_12hr(loc.close)}, needs {format_duration(loc.duration)} visit"
+                })
+                continue
+        
+        # Wait for opening if necessary (already validated above)
         if current_time < loc.open:
             current_time = loc.open
         
@@ -161,97 +195,147 @@ async def generate_itinerary(
             )
             
             if lunch_restaurant:
-                itinerary_items.append({
-                    "id": str(item_id),
-                    "name": lunch_restaurant["name"],
-                    "time": format_time_12hr(current_time),
-                    "duration": "1 hour",
-                    "address": lunch_restaurant.get("address", ""),
-                    "openingHours": f"{format_time_12hr(lunch_restaurant.get('open_time', 720))} - {format_time_12hr(lunch_restaurant.get('close_time', 1320))}",
-                    "tags": ["Lunch"],
-                    "websiteUrl": None,
-                    "isMeal": "lunch",
-                    "lat": lunch_restaurant["lat"],
-                    "lon": lunch_restaurant["lon"]
-                })
-                waypoint_coords.append({
-                    "lat": lunch_restaurant["lat"],
-                    "lng": lunch_restaurant["lon"]
-                })
-                item_id += 1
-                current_time += 60
-                lunch_added = True
+                # Check if restaurant is open for lunch
+                restaurant_open = lunch_restaurant.get("open_time", 720)
+                restaurant_close = lunch_restaurant.get("close_time", 1320)
+                
+                # Adjust lunch time if restaurant isn't open yet
+                lunch_time = max(current_time, restaurant_open)
+                
+                if lunch_time + 60 <= restaurant_close:  # Can finish lunch before closing
+                    lunch_coord_key = (round(lunch_restaurant["lat"], 6), round(lunch_restaurant["lon"], 6))
+                    
+                    itinerary_items.append({
+                        "id": str(item_id),
+                        "name": lunch_restaurant["name"],
+                        "time": format_time_12hr(lunch_time),
+                        "duration": "1 hour",
+                        "address": lunch_restaurant.get("address", ""),
+                        "openingHours": f"{format_time_12hr(restaurant_open)} - {format_time_12hr(restaurant_close)}",
+                        "tags": ["Lunch"],
+                        "websiteUrl": None,
+                        "isMeal": "lunch",
+                        "lat": lunch_restaurant["lat"],
+                        "lon": lunch_restaurant["lon"]
+                    })
+                    
+                    if lunch_coord_key not in seen_coords:
+                        waypoint_coords.append({
+                            "lat": lunch_restaurant["lat"],
+                            "lng": lunch_restaurant["lon"]
+                        })
+                        seen_coords.add(lunch_coord_key)
+                    
+                    item_id += 1
+                    current_time = lunch_time + 60
+                    lunch_added = True
         
         # Add the location to itinerary
-        if idx != hotel_index or i == 0:  # Add hotel only at start
-            tags = []
-            
-            # Determine tags based on location type
-            name_lower = loc.name.lower()
-            if any(word in name_lower for word in ["museum", "gallery"]):
-                tags.append("Cultural")
-            elif any(word in name_lower for word in ["tower", "monument"]):
-                tags.append("Landmark")
-            elif any(word in name_lower for word in ["park", "garden"]):
-                tags.append("Nature")
-            
-            itinerary_items.append({
-                "id": str(item_id),
-                "name": loc.name,
-                "time": format_time_12hr(current_time),
-                "duration": format_duration(loc.duration),
-                "address": loc_data["address"],
-                "openingHours": f"{format_time_12hr(loc.open)} - {format_time_12hr(loc.close)}",
-                "tags": tags,
-                "websiteUrl": None,
-                "isMeal": None,
+        tags = []
+        
+        # Determine tags based on location type
+        name_lower = loc.name.lower()
+        if any(word in name_lower for word in ["museum", "gallery"]):
+            tags.append("Cultural")
+        elif any(word in name_lower for word in ["tower", "monument"]):
+            tags.append("Landmark")
+        elif any(word in name_lower for word in ["park", "garden", "canyon", "recreation"]):
+            tags.append("Nature")
+        
+        itinerary_items.append({
+            "id": str(item_id),
+            "name": loc.name,
+            "time": format_time_12hr(current_time),
+            "duration": format_duration(loc.duration),
+            "address": loc_data["address"],
+            "openingHours": f"{format_time_12hr(loc.open)} - {format_time_12hr(loc.close)}",
+            "tags": tags,
+            "websiteUrl": None,
+            "isMeal": None,
+            "lat": loc_data["lat"],
+            "lon": loc_data["lon"]
+        })
+        
+        coord_key = (round(loc_data["lat"], 6), round(loc_data["lon"], 6))
+        if coord_key not in seen_coords:
+            waypoint_coords.append({
                 "lat": loc_data["lat"],
-                "lon": loc_data["lon"]
+                "lng": loc_data["lon"]
             })
-            
-            if idx != hotel_index:  # Don't add hotel to waypoints
-                waypoint_coords.append({
-                    "lat": loc_data["lat"],
-                    "lng": loc_data["lon"]
-                })
-            
-            item_id += 1
-            current_time += loc.duration
+            seen_coords.add(coord_key)
+        
+        item_id += 1
+        current_time += loc.duration
     
     # Step 6: Add dinner at the end
-    if include_dinner and len(route_indices) > 1:
-        last_idx = route_indices[-1]
-        last_loc_data = locations_data[last_idx]
+    dinner_location_name = None
+    dinner_location_address = None
+    
+    if include_dinner and len(itinerary_items) > 0:
+        # Find the last location's coordinates
+        last_item = itinerary_items[-1]
         
         dinner_restaurant = await find_restaurant_near_location(
-            last_loc_data["lat"], last_loc_data["lon"], radius_m=2000
+            last_item["lat"], last_item["lon"], radius_m=2000
         )
         
         if dinner_restaurant:
-            # Aim for dinner around 7-8 PM
-            if current_time < 1080:
-                current_time = 1260  # 7:00 PM
+            restaurant_open = dinner_restaurant.get("open_time", 1080)  # 6 PM default
+            restaurant_close = dinner_restaurant.get("close_time", 1320)  # 10 PM default
             
-            itinerary_items.append({
-                "id": str(item_id),
-                "name": dinner_restaurant["name"],
-                "time": format_time_12hr(current_time),
-                "duration": "2 hour",
-                "address": dinner_restaurant.get("address", ""),
-                "openingHours": f"{format_time_12hr(dinner_restaurant.get('open_time', 720))} - {format_time_12hr(dinner_restaurant.get('close_time', 1320))}",
-                "tags": ["Dinner"],
-                "websiteUrl": None,
-                "isMeal": "dinner",
-                "lat": dinner_restaurant["lat"],
-                "lon": dinner_restaurant["lon"]
-            })
-            waypoint_coords.append({
-                "lat": dinner_restaurant["lat"],
-                "lng": dinner_restaurant["lon"]
-            })
+            # Aim for dinner around 7-8 PM, but respect restaurant hours
+            dinner_time = current_time
+            if dinner_time < 1140:  # Before 7 PM
+                dinner_time = max(1140, restaurant_open)  # 7 PM or when restaurant opens
+            else:
+                # If arriving later, use current time if restaurant is still open
+                dinner_time = max(dinner_time, restaurant_open)
+            
+            # Only add dinner if restaurant is open
+            if dinner_time + 60 <= restaurant_close:
+                dinner_location_name = dinner_restaurant["name"]
+                dinner_location_address = dinner_restaurant.get("address", "")
+                
+                itinerary_items.append({
+                    "id": str(item_id),
+                    "name": dinner_restaurant["name"],
+                    "time": format_time_12hr(dinner_time),
+                    "duration": "1 hour",
+                    "address": dinner_location_address,
+                    "openingHours": f"{format_time_12hr(restaurant_open)} - {format_time_12hr(restaurant_close)}",
+                    "tags": ["Dinner"],
+                    "websiteUrl": None,
+                    "isMeal": "dinner",
+                    "lat": dinner_restaurant["lat"],
+                    "lon": dinner_restaurant["lon"]
+                })
+                
+                dinner_coord_key = (round(dinner_restaurant["lat"], 6), round(dinner_restaurant["lon"], 6))
+                if dinner_coord_key not in seen_coords:
+                    waypoint_coords.append({
+                        "lat": dinner_restaurant["lat"],
+                        "lng": dinner_restaurant["lon"]
+                    })
+                    seen_coords.add(dinner_coord_key)
+                
+                current_time = dinner_time + 60
     
     # Step 7: Build final response
-    hotel_data = locations_data[hotel_index]
+    if not itinerary_items:
+        raise ValueError("No locations could be added to the itinerary within opening hours")
+    
+    first_item = itinerary_items[0]
+    last_waypoint = waypoint_coords[-1] if waypoint_coords else {"lat": first_item["lat"], "lng": first_item["lon"]}
+    
+    # Remove origin and destination from waypoints (they shouldn't be in the middle points)
+    origin_coord = (round(first_item["lat"], 6), round(first_item["lon"], 6))
+    dest_coord = (round(last_waypoint["lat"], 6), round(last_waypoint["lng"], 6))
+    
+    filtered_waypoints = [
+        wp for wp in waypoint_coords
+        if (round(wp["lat"], 6), round(wp["lng"], 6)) != origin_coord
+        and (round(wp["lat"], 6), round(wp["lng"], 6)) != dest_coord
+    ]
     
     result = {
         "itinerary": itinerary_items,
@@ -259,48 +343,53 @@ async def generate_itinerary(
         "videos": [],  # Could be populated with YouTube API
         "coordinates": {
             "origin": {
-                "lat": hotel_data["lat"],
-                "lng": hotel_data["lon"]
+                "lat": first_item["lat"],
+                "lng": first_item["lon"]
             },
-            "destination": {
-                "lat": hotel_data["lat"],
-                "lng": hotel_data["lon"]
-            },
-            "waypoints": waypoint_coords
+            "destination": last_waypoint,
+            "waypoints": filtered_waypoints
         },
         "summary": {
             "total_locations": len(itinerary_items),
             "start_time": format_time_12hr(start_time_minutes),
             "end_time": format_time_12hr(current_time),
             "duration": format_duration(current_time - start_time_minutes)
+        },
+        "last_location": {
+            "name": dinner_location_name,
+            "address": dinner_location_address
         }
     }
+    
+    # Add warnings about skipped locations if any
+    if skipped_locations:
+        result["warnings"] = {
+            "skipped_locations": skipped_locations
+        }
+        print("\n⚠️  WARNING: Some locations were skipped due to opening hours:")
+        for skip in skipped_locations:
+            print(f"   - {skip['name']}: {skip['reason']}")
     
     return result
 
 
-# Testing Function***
+# Example usage
 async def main():
-    """Example usage of the itinerary generator with command-line arguments."""
-    import argparse
+    """Example usage of the itinerary generator."""
     
-    parser = argparse.ArgumentParser(description='Generate a travel itinerary')
-    parser.add_argument('locations', nargs='+', help='List of location names (first one is hotel)')
-    parser.add_argument('--city', default='Paris, France', help='City name (default: Paris, France)')
-    parser.add_argument('--start-time', type=int, default=540, help='Start time in minutes from midnight (default: 540 = 9:00 AM)')
-    parser.add_argument('--hotel-index', type=int, default=0, help='Index of hotel in location list (default: 0)')
+    # Example: Paris itinerary
+    location_names = [
+        "Eiffel Tower",
+        "Louvre Museum",
+        "Notre-Dame de Paris",
+        "Arc de Triomphe"
+    ]
     
-    args = parser.parse_args()
-    
-    print(f"Generating itinerary for {args.city}...")
-    print(f"Locations: {', '.join(args.locations)}")
-    print()
-    
+    print("Generating itinerary for Paris...")
     itinerary = await generate_itinerary(
-        args.locations,
-        city=args.city,
-        start_time_minutes=args.start_time,
-        hotel_index=args.hotel_index
+        location_names,
+        city="Paris, France",
+        start_time_minutes=540  # 9:00 AM
     )
     
     print("\n=== ITINERARY ===")
@@ -308,6 +397,7 @@ async def main():
         meal_tag = f" [{item['isMeal'].upper()}]" if item['isMeal'] else ""
         print(f"{item['id']}. {item['name']}{meal_tag}")
         print(f"   Time: {item['time']} ({item['duration']})")
+        print(f"   Opening Hours: {item['openingHours']}")
         print(f"   Address: {item['address']}")
         print()
     
@@ -316,6 +406,11 @@ async def main():
     print(f"Start: {itinerary['summary']['start_time']}")
     print(f"End: {itinerary['summary']['end_time']}")
     print(f"Total duration: {itinerary['summary']['duration']}")
+    
+    if itinerary['last_location']['name']:
+        print(f"\n=== LAST LOCATION ===")
+        print(f"Name: {itinerary['last_location']['name']}")
+        print(f"Address: {itinerary['last_location']['address']}")
 
 
 if __name__ == "__main__":

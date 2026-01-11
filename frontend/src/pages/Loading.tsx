@@ -13,7 +13,6 @@ const searchLogos = [
   { name: "Google", logo: "https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" },
   { name: "Yelp", logo: "https://upload.wikimedia.org/wikipedia/commons/a/ad/Yelp_Logo.svg" },
   {name: "DuckDuckGo", logo: "https://upload.wikimedia.org/wikipedia/en/8/88/DuckDuckGo_logo.svg" },
-  {name: "OpenStreetMap", logo: "https://upload.wikimedia.org/wikipedia/commons/6/6a/OpenStreetMap_logo.svg" },
 ];
 
 const SearchingAnimation = () => {
@@ -35,11 +34,11 @@ const SearchingAnimation = () => {
   return (
     <div className="relative w-full max-w-6xl h-[600px] mb-8">
       {/* Empty puzzle placeholder */}
-      <div className="absolute inset-0 grid grid-cols-3 gap-3 opacity-20">
+      {/* <div className="absolute inset-0 grid grid-cols-3 gap-3 opacity-20">
         {Array.from({ length: 9 }).map((_, i) => (
           <div key={i} className="bg-muted rounded-lg border-2 border-dashed border-muted-foreground/30" />
         ))}
-      </div>
+      </div> */}
 
       {/* Animated logos */}
       {searchLogos.map((logo, index) => {

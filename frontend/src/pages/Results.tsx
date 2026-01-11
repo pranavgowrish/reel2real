@@ -16,8 +16,10 @@ interface ItineraryItem {
   address: string;
   openingHours: string;
   tags: string[];
-  websiteUrl: string;
+  websiteUrl: string | null;
   isMeal?: "lunch" | "dinner";
+  lat?: number;
+  lon?: number;
 }
 
 interface ImageData {
@@ -33,6 +35,7 @@ interface VideoData {
 interface Coordinates {
   lat: number;
   lng: number;
+  address?: string;
 }
 
 interface CoordinatesData {
@@ -86,6 +89,57 @@ const Results = () => {
     }
   }, [navigate]);
 
+  // -- build coords with addresses for MapEmbed
+  const itineraryItems = itineraryData?.itinerary || [];
+
+  // Simple list of addresses
+  const itemAddresses = itineraryItems.map((i) => i.address); // array of strings
+
+  // Helper: find address by coords (tolerance for floats)
+  const findAddressByCoords = (lat: number, lng: number) => {
+    const tol = 1e-5;
+    const match = itineraryItems.find(
+      (it) =>
+        typeof it.lat === "number" &&
+        typeof it.lon === "number" &&
+        Math.abs(it.lat - lat) < tol &&
+        Math.abs(it.lon - lng) < tol
+    );
+    return match?.address ?? "";
+  };
+
+  // Build coords with addresses for MapEmbed
+  const originWithAddress = itineraryData?.coordinates.origin
+    ? {
+        ...itineraryData.coordinates.origin,
+        address:
+          itineraryData.coordinates.origin.address ??
+          findAddressByCoords(
+            itineraryData.coordinates.origin.lat,
+            itineraryData.coordinates.origin.lng
+          ),
+      }
+    : undefined;
+
+  const destinationWithAddress = itineraryData?.coordinates.destination
+    ? {
+        ...itineraryData.coordinates.destination,
+        address:
+          itineraryData.coordinates.destination.address ??
+          findAddressByCoords(
+            itineraryData.coordinates.destination.lat,
+            itineraryData.coordinates.destination.lng
+          ),
+      }
+    : undefined;
+
+  const waypointsWithAddress = (itineraryData?.coordinates.waypoints || []).map(
+    (wp) => ({
+      ...wp,
+      address: wp.address ?? findAddressByCoords(wp.lat, wp.lng),
+    })
+  );
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -123,9 +177,9 @@ const Results = () => {
             <ArrowLeft className="h-4 w-4" />
             New Trip
           </Button>
-          
+
           <Logo />
-          
+
           <div className="flex items-center gap-2">
             <Button variant="outline" size="icon">
               <Share2 className="h-4 w-4" />
@@ -152,7 +206,8 @@ const Results = () => {
             Itinerary
           </h1>
           <p className="text-muted-foreground mt-2">
-            {tripData?.days || 1} day adventure • {tripData?.vibes?.join(", ") || "Custom"} vibe
+            {tripData?.days || 1} day adventure •{" "}
+            {tripData?.vibes?.join(", ") || "Custom"} vibe
             {tripData?.budget && ` • $${tripData.budget} budget`}
           </p>
         </motion.div>
@@ -169,9 +224,9 @@ const Results = () => {
             className="lg:col-span-3 order-2 lg:order-1"
           >
             <div className="sticky top-24">
-              <MediaSidebar 
-                images={itineraryData.images || []} 
-                videos={itineraryData.videos || []} 
+              <MediaSidebar
+                images={itineraryData.images || []}
+                videos={itineraryData.videos || []}
               />
             </div>
           </motion.aside>
@@ -209,11 +264,11 @@ const Results = () => {
             className="lg:col-span-4 order-3"
           >
             <div className="sticky top-24">
-              {itineraryData.coordinates ? (
+              {itineraryData.coordinates && originWithAddress && destinationWithAddress ? (
                 <MapEmbed
-                  origin={itineraryData.coordinates.origin}
-                  destination={itineraryData.coordinates.destination}
-                  waypoints={itineraryData.coordinates.waypoints}
+                  origin={originWithAddress}
+                  destination={destinationWithAddress}
+                  waypoints={waypointsWithAddress}
                 />
               ) : (
                 <div className="bg-card rounded-lg border border-border p-8 text-center">

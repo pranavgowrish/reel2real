@@ -39,7 +39,6 @@ async def generate_itinerary(
     location_names: List[str],
     city: str = "Paris, France",
     start_time_minutes: int = 540,  # 9:00 AM default
-    hotel_index: int = 0,  # First location is hotel by default
     include_lunch: bool = True,
     include_dinner: bool = True
 ) -> Dict:
@@ -50,7 +49,6 @@ async def generate_itinerary(
         location_names: List of location names (e.g., ["Eiffel Tower", "Louvre Museum"])
         city: City name for location search context (e.g., "Paris, France")
         start_time_minutes: Starting time in minutes from midnight (540 = 9:00 AM)
-        hotel_index: Index of the hotel in the location list (default 0)
         include_lunch: Whether to automatically add lunch
         include_dinner: Whether to automatically add dinner
     
@@ -77,8 +75,6 @@ async def generate_itinerary(
                 duration = 90  # 1.5 hours for towers/monuments
             elif any(word in name_lower for word in ["park", "garden"]):
                 duration = 120  # 2 hours for parks
-            elif any(word in name_lower for word in ["hotel", "hostel"]):
-                duration = 0  # No duration for hotel
             
             locations_data.append({
                 "name": location_data["name"],
@@ -118,9 +114,9 @@ async def generate_itinerary(
     route_indices, end_time, meal_times = build_itinerary(
         locations,
         travel_matrix,
-        hotel_index,
+        0,  # Start with first location
         start_time_minutes,
-        return_to_hotel=False,  # We'll handle meals and hotel return manually
+        return_to_hotel=False,
         lunch_window=(720, 900),  # 12:00 PM - 3:00 PM
         lunch_duration=60,
         restaurant_locations=[]
@@ -182,43 +178,41 @@ async def generate_itinerary(
                 lunch_added = True
         
         # Add the location to itinerary
-        if idx != hotel_index or i == 0:  # Add hotel only at start
-            tags = []
-            
-            # Determine tags based on location type
-            name_lower = loc.name.lower()
-            if any(word in name_lower for word in ["museum", "gallery"]):
-                tags.append("Cultural")
-            elif any(word in name_lower for word in ["tower", "monument"]):
-                tags.append("Landmark")
-            elif any(word in name_lower for word in ["park", "garden"]):
-                tags.append("Nature")
-            
-            itinerary_items.append({
-                "id": str(item_id),
-                "name": loc.name,
-                "time": format_time_12hr(current_time),
-                "duration": format_duration(loc.duration),
-                "address": loc_data["address"],
-                "openingHours": f"{format_time_12hr(loc.open)} - {format_time_12hr(loc.close)}",
-                "tags": tags,
-                "websiteUrl": None,
-                "isMeal": None,
-                "lat": loc_data["lat"],
-                "lon": loc_data["lon"]
-            })
-            
-            if idx != hotel_index:  # Don't add hotel to waypoints
-                waypoint_coords.append({
-                    "lat": loc_data["lat"],
-                    "lng": loc_data["lon"]
-                })
-            
-            item_id += 1
-            current_time += loc.duration
+        tags = []
+        
+        # Determine tags based on location type
+        name_lower = loc.name.lower()
+        if any(word in name_lower for word in ["museum", "gallery"]):
+            tags.append("Cultural")
+        elif any(word in name_lower for word in ["tower", "monument"]):
+            tags.append("Landmark")
+        elif any(word in name_lower for word in ["park", "garden"]):
+            tags.append("Nature")
+        
+        itinerary_items.append({
+            "id": str(item_id),
+            "name": loc.name,
+            "time": format_time_12hr(current_time),
+            "duration": format_duration(loc.duration),
+            "address": loc_data["address"],
+            "openingHours": f"{format_time_12hr(loc.open)} - {format_time_12hr(loc.close)}",
+            "tags": tags,
+            "websiteUrl": None,
+            "isMeal": None,
+            "lat": loc_data["lat"],
+            "lon": loc_data["lon"]
+        })
+        
+        waypoint_coords.append({
+            "lat": loc_data["lat"],
+            "lng": loc_data["lon"]
+        })
+        
+        item_id += 1
+        current_time += loc.duration
     
     # Step 6: Add dinner at the end
-    if include_dinner and len(route_indices) > 1:
+    if include_dinner and len(route_indices) > 0:
         last_idx = route_indices[-1]
         last_loc_data = locations_data[last_idx]
         
@@ -229,7 +223,7 @@ async def generate_itinerary(
         if dinner_restaurant:
             # Aim for dinner around 7-8 PM
             if current_time < 1140:
-                current_time = 1260  # 7:00 PM
+                current_time = 1140  # 7:00 PM
             
             itinerary_items.append({
                 "id": str(item_id),
@@ -250,7 +244,8 @@ async def generate_itinerary(
             })
     
     # Step 7: Build final response
-    hotel_data = locations_data[hotel_index]
+    first_location = locations_data[0]
+    last_location = locations_data[route_indices[-1]]
     
     result = {
         "itinerary": itinerary_items,
@@ -258,12 +253,12 @@ async def generate_itinerary(
         "videos": [],  # Could be populated with YouTube API
         "coordinates": {
             "origin": {
-                "lat": hotel_data["lat"],
-                "lng": hotel_data["lon"]
+                "lat": first_location["lat"],
+                "lng": first_location["lon"]
             },
             "destination": {
-                "lat": hotel_data["lat"],
-                "lng": hotel_data["lon"]
+                "lat": last_location["lat"],
+                "lng": last_location["lon"]
             },
             "waypoints": waypoint_coords
         },
@@ -271,7 +266,8 @@ async def generate_itinerary(
             "total_locations": len(itinerary_items),
             "start_time": format_time_12hr(start_time_minutes),
             "end_time": format_time_12hr(current_time),
-            "duration": format_duration(current_time - start_time_minutes)
+            "duration": format_duration(current_time - start_time_minutes),
+            "ending_location": last_location["name"]
         }
     }
     
@@ -282,9 +278,8 @@ async def generate_itinerary(
 async def main():
     """Example usage of the itinerary generator."""
     
-    # Example 1: Paris itinerary
+    # Example: Paris itinerary
     location_names = [
-        "Hotel Ritz Paris",  # Hotel (starting point)
         "Eiffel Tower",
         "Louvre Museum",
         "Notre-Dame de Paris",
@@ -295,8 +290,7 @@ async def main():
     itinerary = await generate_itinerary(
         location_names,
         city="Paris, France",
-        start_time_minutes=540,  # 9:00 AM
-        hotel_index=0
+        start_time_minutes=540  # 9:00 AM
     )
     
     print("\n=== ITINERARY ===")
@@ -312,6 +306,7 @@ async def main():
     print(f"Start: {itinerary['summary']['start_time']}")
     print(f"End: {itinerary['summary']['end_time']}")
     print(f"Total duration: {itinerary['summary']['duration']}")
+    print(f"Ending at: {itinerary['summary']['ending_location']}")
 
 
 if __name__ == "__main__":
