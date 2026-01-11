@@ -88,10 +88,15 @@ const Results = () => {
 
       const data = await response.json();
       console.log("DATA:", data);
+      const itineraryData = JSON.parse(localStorage.getItem('itineraryData'));
 
+// Get the last location address
+const lastLocationAddress = itineraryData.last_location.address;
+console.log(lastLocationAddress); 
       // Store the API response
-      localStorage.setItem("hotel", JSON.stringify(data.result));
+      localStorage.setItem("hotel", JSON.stringify(data));
       setHotelData(data.result);
+      console.log("Hotel data set:", data);
     } catch (error) {
       console.error("Error fetching hotel:", error);
       navigate("/error");
@@ -281,6 +286,7 @@ const Results = () => {
                 <>
                   {/* Hotel card at start */}
                   {hotelData && (
+                    <>
                     <ItineraryCard
                       item={{
                         id: "0",
@@ -296,6 +302,8 @@ const Results = () => {
                       index={0}
                       isLast={false}
                     />
+                    HELLOOOOO
+                    </>
                   )}
 
                   {/* Regular itinerary items */}

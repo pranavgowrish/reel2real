@@ -203,7 +203,8 @@ async def gemini_confirm(request: Request):
 
     print("Received city:", city, "vibe:", vibe, "budget:", budget)
 
-    top_places = await scrape_test.collect_venues(city, vibe)
+    #top_places = await scrape_test.collect_venues(city, vibe)
+    top_places = ["Central Park", "Statue of Liberty", "Times Square", "Brooklyn Bridge", "Metropolitan Museum of Art"]
 
     prompt = f"""Your goal is to confirm if the following list of venues are best in the location {city} for a vacationer seeking an {vibe} vibe within a budget of {budget}.
     Top Places: {top_places}
@@ -309,17 +310,17 @@ async def hotel(request: Request):
     checkout = body.get("checkout")
     adults = body.get("adults")
 
-    link, name, address= deeplinking.run(
+    list= await deeplinking.run(
         address=address,
         checkin=checkin,
         checkout=checkout,
         adults=adults
     )
-    print("Generated hotel link:", link)
+    print("Generated hotel link:", list[0])
     message = {
-        "name":  name,
-        "link": link,
-        "address": address
+        "name":  list[1],
+        "link": list[0],
+        "address": list[2]
     }
     
     return JSONResponse(content=message)

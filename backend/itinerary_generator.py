@@ -356,9 +356,9 @@ async def generate_itinerary(
             "duration": format_duration(current_time - start_time_minutes)
         },
         "last_location": {
-            "name": dinner_location_name,
-            "address": dinner_location_address
-        }
+    "name": last_item["name"],
+    "address": last_item["address"]
+            }
     }
     
     # Add warnings about skipped locations if any

@@ -179,6 +179,7 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
         videos: data?.final?.videos || [],
         coordinates: data?.final?.coordinates || {},
         tags: tripData.tags || [],
+        last_location: data?.final?.last_location || {},
       }));
 
       // Redirect to results page after successful API response

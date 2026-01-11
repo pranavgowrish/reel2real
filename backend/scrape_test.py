@@ -129,19 +129,20 @@ def search_article_urls(query, max_results=10):
 
 
 
-def extract_video_urls(query, max_results=2):
+def extract_video_urls(query, max_results=0):
     urls = []
-   
-    results = ddg.videos(query, max_results=max_results)
-   
-    for i, result in enumerate(results, 1):
-        url = result.get('content')
-        if url and is_allowed_video_domain(url):
-            urls.append(url)
-            print(f"     {url[:60]}")
-       
-        time.sleep(1)
-       
+    
+    if max_results > 0:
+        results = ddg.videos(query, max_results=max_results)
+    
+        for i, result in enumerate(results, 1):
+            url = result.get('content')
+            if url and is_allowed_video_domain(url):
+                urls.append(url)
+                print(f"     {url[:60]}")
+        
+            time.sleep(1)
+        
     return urls
 
 
@@ -257,7 +258,7 @@ def multi_thread_scrape_article_for_venues(query, destination, query_blacklist):
 
 def multi_thread_scrape_video_for_venues(query, destination):
     all_videos = []
-    videos = extract_video_urls(query, max_results=2)
+    videos = extract_video_urls(query, 0)
    
     destinations = [destination] * len(videos)
    
@@ -271,7 +272,7 @@ def multi_thread_scrape_video_for_venues(query, destination):
 
 
 
-def collect_venues(destination, vibe):
+async def collect_venues(destination, vibe):
     """Main venue collection pipeline"""
     print(f" Searching for {vibe} venues in {destination}...\n")
    

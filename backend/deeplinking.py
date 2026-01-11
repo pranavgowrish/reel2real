@@ -17,7 +17,7 @@ async def scrape_google_hotels(destination, checkin, checkout, adults):
     print(f"  Scraping Google Hotels: {search_url[:60]}...")
     
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=False)
+        browser = await p.chromium.launch(headless=True)
         context = await browser.new_context(
             viewport={'width': 1280, 'height': 800},
             user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
@@ -122,6 +122,7 @@ def generate_booking_search_link(hotel_name, checkin, checkout, adults):
 
 
 async def run(address, checkin, checkout, adults):
+    result = []
     candidates = await scrape_google_hotels(address, checkin, checkout, adults)
     winner = pick_winner(candidates)
     if winner:
@@ -129,7 +130,7 @@ async def run(address, checkin, checkout, adults):
         
         final_link = generate_booking_search_link(winner['name'], checkin, checkout, adults)
         print(f" Booking Link: {final_link}")
-        return final_link, winner['name'], winner['address']
+        return [final_link, winner['name'], winner['address']]
     else:
         print("No suitable hotels found.")
         return None
