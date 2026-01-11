@@ -67,7 +67,7 @@ async def scrape_google_hotels(destination, checkin, checkout, adults):
                                         break
                                 
                             hotels.append({"name": name, "price": price, "rating": rating, "address": address})
-                            print(f"    ✓ Found: {name} (${price}) - {address}")
+                            print(f"    Found: {name} (${price}) - {address}")
                             count += 1
                 except:
                     continue
