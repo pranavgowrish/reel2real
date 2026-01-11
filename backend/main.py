@@ -10,8 +10,8 @@ import re
 
 import deeplinking
 
-from process_video import process_multiple_videos_from_urls
-from analyze_video import analyze_existing_video, analyze_multiple_videos
+#from process_video import process_multiple_videos_from_urls
+#from analyze_video import analyze_existing_video, analyze_multiple_videos
 
 app = FastAPI()
 
