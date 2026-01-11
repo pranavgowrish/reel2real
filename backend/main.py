@@ -28,7 +28,7 @@ load_dotenv()
 # =========================
 # ENDPOINT 
 # =========================
-client = genai.Client(api_key="")
+client = genai.Client(api_key="AIzaSyCipIj_9yjHcOLkx_nEIYnNdy1fVv-ymDc")
 
 
 

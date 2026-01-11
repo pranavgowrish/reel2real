@@ -31,7 +31,7 @@ def create_index(name: str) -> str:
     payload = {
         "index_name": name,
         "models": [
-            {"model_name": "marengo2.7", "model_options": ["visual", "audio"]},
+            # {"model_name": "marengo2.7", "model_options": ["visual", "audio"]},
             {"model_name": "pegasus1.2", "model_options": ["visual", "audio"]}
         ]
     }

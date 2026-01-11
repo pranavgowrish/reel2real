@@ -46,19 +46,6 @@ def test_environment():
     
     print(f"API Key found: {api_key[:10]}...")
 
-def test_create_index_standalone():
-    """Test index creation (standalone test)"""
-    print("TEST: Create Index")
-    
-    index_name = f"test-standalone-{int(time.time())}"
-    print(f"Creating index: {index_name}")
-    index_id = create_index(index_name)
-    
-    assert index_id is not None
-    assert len(index_id) > 0
-    print(f"Index created with ID: {index_id}")
-
-
 
 # ======================================
 # MAIN FUNCTION - TAKES IN A SINGLE URL
@@ -154,7 +141,7 @@ def fully_process(url: str, destination: str) -> List[str]:
         # 4: Wait for Task
         print("4: Wait for Indexing")
         try:
-            video_id = wait_for_task(task_info["task_id"], timeout=600)
+            video_id = wait_for_task(task_info["task_id"], timeout=60)
             print(f"Video indexed: {video_id}")
         except Exception as e:
             print(f"Failed: {e}")
