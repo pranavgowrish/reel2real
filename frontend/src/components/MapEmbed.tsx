@@ -1,17 +1,29 @@
-import { MapPin, Navigation } from "lucide-react";
+import { MapPin } from "lucide-react";
 
 interface MapEmbedProps {
-  origin: { lat: number; lng: number };
-  destination: { lat: number; lng: number };
-  waypoints: Array<{ lat: number; lng: number }>;
+  origin: { lat: number; lng: number; address?: string };
+  destination: { lat: number; lng: number; address?: string };
+  waypoints: Array<{ lat: number; lng: number; address?: string }>;
 }
 
 export const MapEmbed = ({ origin, destination, waypoints }: MapEmbedProps) => {
-  const waypointsStr = waypoints.map((wp) => `${wp.lat},${wp.lng}`).join("|");
+  // Use addresses if available, otherwise fall back to coordinates
+  const originStr = origin.address 
+    ? encodeURIComponent(origin.address)
+    : `${origin.lat},${origin.lng}`;
   
-  const mapUrl = `https://www.google.com/maps/embed/v1/directions?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&origin=${origin.lat},${origin.lng}&destination=${destination.lat},${destination.lng}&waypoints=${waypointsStr}&mode=driving`;
+  const destinationStr = destination.address
+    ? encodeURIComponent(destination.address)
+    : `${destination.lat},${destination.lng}`;
+  
+  // For waypoints, use addresses when available
+  const waypointsStr = waypoints
+    .map((wp) => wp.address ? encodeURIComponent(wp.address) : `${wp.lat},${wp.lng}`)
+    .join("|");
+  
+  const mapUrl = `https://www.google.com/maps/embed/v1/directions?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&origin=${originStr}&destination=${destinationStr}&waypoints=${waypointsStr}&mode=driving`;
 
-  const directionsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin.lat},${origin.lng}&destination=${destination.lat},${destination.lng}&waypoints=${waypointsStr}&travelmode=driving`;
+  const directionsUrl = `https://www.google.com/maps/dir/?api=1&origin=${originStr}&destination=${destinationStr}&waypoints=${waypointsStr}&travelmode=driving`;
 
   return (
     <div className="space-y-3">

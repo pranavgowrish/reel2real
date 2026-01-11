@@ -278,57 +278,31 @@ async def calculate_travel_time_matrix(
 async def get_location_data_by_name(name: str, city: str = "Paris, France") -> Optional[Dict]:
     """
     Get complete location data from OpenStreetMap using only the name.
-    Returns dict with name, address, lat, lon, open_time, close_time, or None if not found.
+    Returns dict with name, address, lat, lon, open_time, close_time, google_maps_url, or None if not found.
+    Coordinates are guaranteed to be valid floats suitable for Google Maps URLs.
     """
     try:
         # Search using Nominatim first to get coordinates
-        # Try with city first, then without if that fails
         search_query = f"{name}, {city}" if city else name
-        search_results = await search_location(search_query, limit=5)  # Get more results to find best match
+        search_results = await search_location(search_query, limit=5)
         
-        # Filter results to find ones with valid coordinates
-        valid_results = []
-        for result in search_results:
-            lat = result.get("lat")
-            lon = result.get("lon")
-            if lat is not None and lon is not None:
-                try:
-                    # Ensure they're valid numbers
-                    lat_float = float(lat)
-                    lon_float = float(lon)
-                    if -90 <= lat_float <= 90 and -180 <= lon_float <= 180:
-                        valid_results.append(result)
-                except (ValueError, TypeError):
-                    continue
-        
-        if not valid_results:
+        # search_location already filters for valid coordinates
+        if not search_results:
             # Try searching without city if first search failed
             if city and name != city:
                 search_results = await search_location(name, limit=5)
-                for result in search_results:
-                    lat = result.get("lat")
-                    lon = result.get("lon")
-                    if lat is not None and lon is not None:
-                        try:
-                            lat_float = float(lat)
-                            lon_float = float(lon)
-                            if -90 <= lat_float <= 90 and -180 <= lon_float <= 180:
-                                valid_results.append(result)
-                        except (ValueError, TypeError):
-                            continue
         
-        if not valid_results:
+        if not search_results:
             print(f"Could not find location with valid coordinates: {name} (searched: {search_query})")
             return None
         
-        # Use the first valid result
-        result = valid_results[0]
-        lat = float(result["lat"])
-        lon = float(result["lon"])
+        # Use the first result (already validated)
+        result = search_results[0]
+        lat = result["lat"]  # Already a valid float
+        lon = result["lon"]  # Already a valid float
         address = result.get("address", result.get("name", name))
         
-        # Get opening hours using smart defaults (faster, avoids Overpass API timeouts)
-        # Only try Overpass API if we don't have good defaults
+        # Get opening hours
         open_time, close_time = await get_opening_hours_by_coords(lat, lon, name)
         
         return {
@@ -337,8 +311,10 @@ async def get_location_data_by_name(name: str, city: str = "Paris, France") -> O
             "lat": lat,
             "lon": lon,
             "open_time": open_time,
-            "close_time": close_time
+            "close_time": close_time,
+            "google_maps_url": f"https://www.google.com/maps?q={lat},{lon}"
         }
+        
     except Exception as e:
         print(f"Error getting location data for {name}: {e}")
         import traceback

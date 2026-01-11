@@ -15,8 +15,10 @@ interface ItineraryItem {
   address: string;
   openingHours: string;
   tags: string[];
-  websiteUrl: string;
+  websiteUrl: string | null;
   isMeal?: "lunch" | "dinner";
+  lat?: number;
+  lon?: number;
 }
 
 interface ImageData {
@@ -32,6 +34,7 @@ interface VideoData {
 interface Coordinates {
   lat: number;
   lng: number;
+  address?: string;
 }
 
 interface CoordinatesData {
@@ -45,6 +48,8 @@ interface TripData {
   vibes: string[];
   days: number;
   budget: number;
+  checkin: string;
+  checkout: string;
 }
 
 interface ItineraryData {
@@ -59,6 +64,39 @@ const Results = () => {
   const [tripData, setTripData] = useState<TripData | null>(null);
   const [itineraryData, setItineraryData] = useState<ItineraryData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hotelData, setHotelData] = useState<any>(null);
+
+  const handleHotel = async () => {
+    try {
+      const itineraryDataStr = localStorage.getItem("itineraryData");
+      const itineraryDataObj = itineraryDataStr ? JSON.parse(itineraryDataStr) : null;
+      const response = await fetch(
+        "http://127.0.0.1:8000/hotel",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            checkin: tripData?.checkin,
+            checkout: tripData?.checkout,
+            adults: tripData?.days,
+            address: itineraryDataObj?.last_location?.address || "",
+          }),
+        }
+      );
+
+      const data = await response.json();
+      console.log("DATA:", data);
+
+      // Store the API response
+      localStorage.setItem("hotel", JSON.stringify(data.result));
+      setHotelData(data.result);
+    } catch (error) {
+      console.error("Error fetching hotel:", error);
+      navigate("/error");
+    }
+  };
 
   useEffect(() => {
     try {
@@ -84,6 +122,57 @@ const Results = () => {
       setLoading(false);
     }
   }, [navigate]);
+
+  // -- build coords with addresses for MapEmbed
+  const itineraryItems = itineraryData?.itinerary || [];
+
+  // Simple list of addresses
+  const itemAddresses = itineraryItems.map((i) => i.address); // array of strings
+
+  // Helper: find address by coords (tolerance for floats)
+  const findAddressByCoords = (lat: number, lng: number) => {
+    const tol = 1e-5;
+    const match = itineraryItems.find(
+      (it) =>
+        typeof it.lat === "number" &&
+        typeof it.lon === "number" &&
+        Math.abs(it.lat - lat) < tol &&
+        Math.abs(it.lon - lng) < tol
+    );
+    return match?.address ?? "";
+  };
+
+  // Build coords with addresses for MapEmbed
+  const originWithAddress = itineraryData?.coordinates.origin
+    ? {
+        ...itineraryData.coordinates.origin,
+        address:
+          itineraryData.coordinates.origin.address ??
+          findAddressByCoords(
+            itineraryData.coordinates.origin.lat,
+            itineraryData.coordinates.origin.lng
+          ),
+      }
+    : undefined;
+
+  const destinationWithAddress = itineraryData?.coordinates.destination
+    ? {
+        ...itineraryData.coordinates.destination,
+        address:
+          itineraryData.coordinates.destination.address ??
+          findAddressByCoords(
+            itineraryData.coordinates.destination.lat,
+            itineraryData.coordinates.destination.lng
+          ),
+      }
+    : undefined;
+
+  const waypointsWithAddress = (itineraryData?.coordinates.waypoints || []).map(
+    (wp) => ({
+      ...wp,
+      address: wp.address ?? findAddressByCoords(wp.lat, wp.lng),
+    })
+  );
 
   if (loading) {
     return (
@@ -123,9 +212,13 @@ const Results = () => {
             New Trip
           </Button>
 
-          <img src="public/logo2.png" alt="Logo" className="size-1/3" />
-
           <div className="flex items-center gap-2">
+            <Button 
+              className="bg-primary hover:bg-primary/90"
+              onClick={handleHotel}
+            >
+              Let Us find the best Hotel for your trip!
+            </Button>
             <Button variant="outline" size="icon">
               <Share2 className="h-4 w-4" />
             </Button>
@@ -185,14 +278,58 @@ const Results = () => {
           >
             <div className="space-y-3">
               {itineraryData.itinerary && itineraryData.itinerary.length > 0 ? (
-                itineraryData.itinerary.map((item, index) => (
-                  <ItineraryCard
-                    key={item.id}
-                    item={item}
-                    index={index}
-                    isLast={index === itineraryData.itinerary.length - 1}
-                  />
-                ))
+                <>
+                  {/* Hotel card at start */}
+                  {hotelData && (
+                    <ItineraryCard
+                      item={{
+                        id: "0",
+                        name: hotelData.name || "Hotel Check-in",
+                        time: tripData?.checkin || "Check-in",
+                        duration: "Check-in",
+                        address: hotelData.address || "",
+                        openingHours: "24 hours",
+                        tags: ["Hotel"],
+                        websiteUrl: hotelData.link || null,
+                        isMeal: undefined,
+                      }}
+                      index={0}
+                      isLast={false}
+                    />
+                  )}
+
+                  {/* Regular itinerary items */}
+                  {itineraryData.itinerary.map((item, index) => (
+                    <ItineraryCard
+                      key={item.id}
+                      item={item}
+                      index={hotelData ? index + 1 : index}
+                      isLast={
+                        !hotelData &&
+                        index === itineraryData.itinerary.length - 1
+                      }
+                    />
+                  ))}
+
+                  {/* Hotel  card at end */}
+                  {hotelData && (
+                    <ItineraryCard
+                      item={{
+                        id: String(itineraryData.itinerary.length + 1),
+                        name: hotelData.name || "Hotel",
+                        time: tripData?.checkout || "",
+                        duration: "Check-out",
+                        address: hotelData.address || "",
+                        openingHours: "24 hours",
+                        tags: ["Hotel"],
+                        websiteUrl: hotelData.link || null,
+                        isMeal: undefined,
+                      }}
+                      index={itineraryData.itinerary.length + 1}
+                      isLast={true}
+                    />
+                  )}
+                </>
               ) : (
                 <div className="text-center py-12">
                   <p className="text-muted-foreground">
@@ -211,11 +348,11 @@ const Results = () => {
             className="lg:col-span-4 order-3"
           >
             <div className="sticky top-24">
-              {itineraryData.coordinates ? (
+              {itineraryData.coordinates && originWithAddress && destinationWithAddress ? (
                 <MapEmbed
-                  origin={itineraryData.coordinates.origin}
-                  destination={itineraryData.coordinates.destination}
-                  waypoints={itineraryData.coordinates.waypoints}
+                  origin={originWithAddress}
+                  destination={destinationWithAddress}
+                  waypoints={waypointsWithAddress}
                 />
               ) : (
                 <div className="bg-card rounded-lg border border-border p-8 text-center">

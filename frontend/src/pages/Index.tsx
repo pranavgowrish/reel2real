@@ -23,7 +23,7 @@ const Index = () => {
             transition={{ duration: 0.5 }}
             className="flex justify-center"
           >
-            <img src="public/logo2.png" alt="Logo" className="size-1/3" />
+            <img src="logo2.png" alt="Logo" className="size-1/3" />
           </motion.div>
         </header>
 

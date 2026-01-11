@@ -4,42 +4,14 @@ import { PuzzleLoader } from "@/components/PuzzleLoader";
 
 // Popular website logos for searching animation
 const searchLogos = [
-  {
-    name: "Instagram",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png",
-  },
-  {
-    name: "YouTube",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg",
-  },
-  {
-    name: "Booking.com",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/b/be/Booking.com_logo.svg",
-  },
-  {
-    name: "Airbnb",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/6/69/Airbnb_Logo_B%C3%A9lo.svg",
-  },
-  {
-    name: "Expedia",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/5/5b/Expedia_2012_logo.svg",
-  },
-  {
-    name: "Google",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg",
-  },
-  {
-    name: "Yelp",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/a/ad/Yelp_Logo.svg",
-  },
-  {
-    name: "DuckDuckGo",
-    logo: "https://upload.wikimedia.org/wikipedia/en/8/88/DuckDuckGo_logo.svg",
-  },
-  {
-    name: "OpenStreetMap",
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b0/Openstreetmap_logo.svg/1024px-Openstreetmap_logo.svg.png",
-  },
+  { name: "Instagram", logo: "https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" },
+  { name: "YouTube", logo: "https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg" },
+  { name: "Booking.com", logo: "https://upload.wikimedia.org/wikipedia/commons/b/be/Booking.com_logo.svg" },
+  { name: "Airbnb", logo: "https://upload.wikimedia.org/wikipedia/commons/6/69/Airbnb_Logo_B%C3%A9lo.svg" },
+  { name: "Expedia", logo: "https://upload.wikimedia.org/wikipedia/commons/5/5b/Expedia_2012_logo.svg" },
+  { name: "Google", logo: "https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" },
+  { name: "Yelp", logo: "https://upload.wikimedia.org/wikipedia/commons/a/ad/Yelp_Logo.svg" },
+  {name: "DuckDuckGo", logo: "https://upload.wikimedia.org/wikipedia/en/8/88/DuckDuckGo_logo.svg" },
 ];
 
 const SearchingAnimation = () => {
@@ -61,11 +33,11 @@ const SearchingAnimation = () => {
   return (
     <div className="relative w-full max-w-6xl h-[600px] mb-8">
       {/* Empty puzzle placeholder */}
-      <div className="absolute inset-0 grid grid-cols-3 gap-3 opacity-20">
+      {/* <div className="absolute inset-0 grid grid-cols-3 gap-3 opacity-20">
         {Array.from({ length: 9 }).map((_, i) => (
           <div key={i} className="bg-muted rounded-lg border-2 border-dashed border-muted-foreground/30" />
         ))}
-      </div>
+      </div> */}
 
       {/* Animated logos */}
       {searchLogos.map((logo, index) => {
@@ -94,7 +66,7 @@ return (
       {/* Searching text */}
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="text-3xl font-semibold text-muted-foreground animate-pulse">
-          Searching the web...
+          Crawling and Researching...
         </div>
       </div>
     </div>
@@ -182,7 +154,7 @@ const Loading = () => {
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       {/* Logo */}
       <div className="mb-8 justify-center items-center flex ">
-        <img src="public/logo2.png" alt="Logo" className="size-4/12  items-center justify-between" />
+        <img src="logo2.png" alt="Logo" className="size-4/12  items-center justify-between" />
       </div>
 
       {/* Location */}

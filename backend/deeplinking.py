@@ -80,8 +80,18 @@ def scrape_google_hotels(destination, checkin, checkout, adults):
                             if "4." in card_text:
                                 rating = 4.0 # Placeholder logic
                                 
-                            hotels.append({"name": name, "price": price, "rating": rating})
-                            print(f"    ✓ Found: {name} (${price})")
+                            address = ""
+                            lines = card_text.split('\n')
+                            for i, line in enumerate(lines):
+                                if name in line and i + 1 < len(lines):
+                                    # The line after the name is often the address
+                                    potential_address = lines[i + 1].strip()
+                                    if potential_address and '$' not in potential_address and 'rating' not in potential_address.lower():
+                                        address = potential_address
+                                        break
+                                
+                            hotels.append({"name": name, "price": price, "rating": rating, "address": address})
+                            print(f"    ✓ Found: {name} (${price}) - {address}")
                             count += 1
                 except:
                     continue
@@ -140,6 +150,21 @@ def generate_booking_search_link(hotel_name, checkin, checkout, adults):
     
     encoded = urllib.parse.urlencode(params)
     return f"{base_url}?{encoded}"
+
+
+def run(address, checkin, checkout, adults):
+    candidates = scrape_google_hotels(address, checkin, checkout, adults)
+    winner = pick_winner(candidates)
+    if winner:
+        print(f"\n WINNER: {winner['name']} (Best balance of Price/Rating)")
+        
+        final_link = generate_booking_search_link(winner['name'], checkin, checkout, adults)
+        print(f" Booking Link: {final_link}")
+        return final_link and winner['name'] and winner['address']
+    else:
+        print("No suitable hotels found.")
+    
+
 
 # --- RUN IT ---
 candidates = scrape_google_hotels("705 Cornish Dr, San Diego, CA 92107", "2026-02-06", "2026-02-07", 2) #f"{final} {destination}"

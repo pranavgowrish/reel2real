@@ -9,6 +9,9 @@ from typing import Dict, Optional
 
 BASE_URL = "https://api.twelvelabs.io/v1.3"
 
+from dotenv import load_dotenv
+load_dotenv()
+
 api_key = os.getenv("TWELVE_LABS_API_KEY")
 if not api_key:
     raise RuntimeError("TWELVE_LABS_API_KEY environment variable not set")

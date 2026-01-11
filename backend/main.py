@@ -6,6 +6,9 @@ import scrape_test
 from ddgs import DDGS
 import json
 import itinerary_generator
+import re
+
+import deeplinking
 
 from process_video import process_multiple_videos_from_urls
 from analyze_video import analyze_existing_video, analyze_multiple_videos
@@ -26,6 +29,7 @@ load_dotenv()
 # ENDPOINT 
 # =========================
 client = genai.Client(api_key="AIzaSyDkaWhk48curcsSld_OMemR-qPLCns_RRw")
+
 
 
 @app.post("/example")
@@ -212,13 +216,18 @@ async def gemini_confirm(request: Request):
         )
         print("Gemini response:", response)
         response_text = response.text.strip()
-        if response_text.startswith("```json"):
-            response_text = response_text[7:]  # Remove ```json
-        if response_text.startswith("```"):
-            response_text = response_text[3:]  # Remove ```
-        if response_text.endswith("```"):
-            response_text = response_text[:-3]  # Remove trailing ```
-        response_text = response_text.strip()
+        
+        # Extract JSON from markdown code blocks or extra text
+        json_match = re.search(r'```json\s*(\{.*?\})\s*```', response_text, re.DOTALL)
+        if json_match:
+            # Found JSON in markdown code block
+            response_text = json_match.group(1).strip()
+        else:
+            # Try to find raw JSON object (in case there's extra text)
+            json_match = re.search(r'\{.*\}', response_text, re.DOTALL)
+            if json_match:
+                response_text = json_match.group(0).strip()
+            # If no match, proceed with cleaned response_text as before
 
         response_data = json.loads(response_text)
         confirmed_places = []
@@ -248,6 +257,7 @@ async def gemini_confirm(request: Request):
     
     except json.JSONDecodeError as e:
         print(f"Error parsing JSON response: {e}")
+        print(f"Response text was: {response_text}")
         return JSONResponse(
             content={"error": f"Failed to parse API response: {str(e)}"},
             status_code=400
@@ -280,13 +290,36 @@ async def itin(request: Request):
         places,
         city=city,
         start_time_minutes=540,
-        hotel_index=0
     )
 
     print("Generated itinerary:", itinerary)
         
     message = {
         "final": itinerary
+    }
+    
+    return JSONResponse(content=message)
+
+@app.post("/hotel")
+async def hotel(request: Request):
+    body = await request.json() 
+
+    address = body.get("address")
+    checkin = body.get("checkin")
+    checkout = body.get("checkout")
+    adults = body.get("adults")
+
+    link, name, address= deeplinking.run(
+        address=address,
+        checkin=checkin,
+        checkout=checkout,
+        adults=adults
+    )
+    print("Generated hotel link:", link)
+    message = {
+        "name":  name,
+        "link": link,
+        "address": address
     }
     
     return JSONResponse(content=message)

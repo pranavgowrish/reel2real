@@ -6,3 +6,5 @@ __pycache__/
 .venv
 backend/__pycache__
 backend/tests/
+.venv2
+.venv3
