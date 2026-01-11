@@ -1,10 +1,9 @@
 fastapi 
 requests
-beautifulsoup4
+bs4
 duckduckgo-search
 ddgs
 spacy
-fastapi
 uvicorn
 twelvelabs
 requests
@@ -13,3 +12,7 @@ typing
 instaloader
 ffmpeg
 google-genai
+httpx
+python-dotenv
+pydantic
+pytest

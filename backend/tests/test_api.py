@@ -32,7 +32,7 @@ client = TestClient(app)
 # TEST DATA
 # =========================
 TEST_VIDEO_URLS = [
-    "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 ]
 
 TEST_PROMPT = "Provide a brief summary of this video."
@@ -48,11 +48,11 @@ def print_separator(title: str):
 
 
 def print_success(message: str):
-    print(f"✅ {message}")
+    print(f" {message}")
 
 
 def print_error(message: str):
-    print(f"❌ {message}")
+    print(f" {message}")
 
 
 # =========================
@@ -195,7 +195,7 @@ def test_analyze_videos_success():
         "prompt": TEST_PROMPT
     }
     
-    print("⚠️  This test will take several minutes (downloads + uploads + indexing)")
+    print("  This test will take several minutes (downloads + uploads + indexing)")
     
     response = client.post("/analyze-videos", json=payload)
     
@@ -238,9 +238,9 @@ def test_cors_headers():
 # RUN ALL TESTS
 # =========================
 if __name__ == "__main__":
-    print("\n" + "🧪" * 30)
+    print("\n" + "" * 30)
     print("FASTAPI ENDPOINT TEST SUITE")
-    print("🧪" * 30)
+    print("" * 30)
     
     # Run fast tests
     test_example_endpoint()
@@ -252,7 +252,7 @@ if __name__ == "__main__":
     test_cors_headers()
     
     print("\n" + "=" * 60)
-    print("⚠️  Skipping slow test (real API call)")
+    print("  Skipping slow test (real API call)")
     print("To run slow tests: pytest test_api.py -m slow -v -s")
     print("=" * 60)
     

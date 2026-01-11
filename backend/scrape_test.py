@@ -8,6 +8,15 @@ import time
 import threading
 import concurrent.futures
 
+from process_video import (
+    download_from_urls,
+    upload_and_index_video,
+    process_video_from_url,
+    process_multiple_videos_from_urls,
+    process_local_video
+)
+
+
 # Load spaCy model
 nlp = spacy.load("en_core_web_sm")
 
@@ -290,3 +299,4 @@ if __name__ == "__main__":
     print("\nTop destinations:")
     for venue in top_places:
         print(f"{venue['name']} ({venue['score']})")
+
