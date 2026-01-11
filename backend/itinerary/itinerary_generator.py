@@ -1,3 +1,5 @@
+import asyncio
+
 """
 Complete itinerary generator that takes location names and returns a full itinerary.
 Combines location search, travel time calculation, and route optimization.
@@ -130,6 +132,22 @@ async def generate_itinerary(
     
     # Track coordinates for mapping
     waypoint_coords = []
+    
+    async def fetch_potential_lunch(idx, lat, lon):
+        restaurant = await find_restaurant_near_location(lat, lon, radius_m=2000)
+        return idx, restaurant
+
+    # Create a list of tasks for every single location in the route 
+    lunch_tasks = []
+    for idx in route_indices:
+        loc_d = locations_data[idx]
+        lunch_tasks.append(fetch_potential_lunch(idx, loc_d["lat"], loc_d["lon"]))
+
+    # Run all searches simultaneously (this is where the speedup happens)
+    lunch_results_list = await asyncio.gather(*lunch_tasks)
+
+    # Convert list to a dictionary for fast lookup: { index: restaurant_data }
+    lunch_map = {idx: res for idx, res in lunch_results_list}
     
     for i, idx in enumerate(route_indices):
         loc_data = locations_data[idx]

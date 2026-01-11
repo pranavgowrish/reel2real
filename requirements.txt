@@ -19,4 +19,4 @@ fastapi
 uvicorn
 httpx
 python-dotenv
-re
+playwright
