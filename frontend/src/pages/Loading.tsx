@@ -66,7 +66,7 @@ return (
       {/* Searching text */}
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="text-3xl font-semibold text-muted-foreground animate-pulse">
-          Searching the web...
+          Crawling and Researching...
         </div>
       </div>
     </div>
