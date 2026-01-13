@@ -325,3 +325,12 @@ async def hotel(request: Request):
     }
     
     return JSONResponse(content=message)
+
+@app.get("/")
+def wake_up():
+    return {"status": "backready"}
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
