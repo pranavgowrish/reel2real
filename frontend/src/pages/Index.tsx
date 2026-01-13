@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { TripForm } from "@/components/TripForm";
-// import heroVideo from "@/assets/hero-travel.mp4"; 
+// import heroVideo from "@/assets/travel-hero.mp4"; 
 import { Compass } from "lucide-react";
 
 const Index = () => {
