@@ -51,6 +51,7 @@ def test_environment():
 # MAIN FUNCTION - TAKES IN A SINGLE URL
 # ======================================
 def fully_process(url: str, destination: str) -> List[str]:
+    return []
     print("=" * 70)
     print(" YOUTUBE VIDEO DOWNLOAD")
     print("=" * 70)
