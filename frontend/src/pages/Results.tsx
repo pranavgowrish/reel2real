@@ -71,7 +71,7 @@ const Results = () => {
       const itineraryDataStr = localStorage.getItem("itineraryData");
       const itineraryDataObj = itineraryDataStr ? JSON.parse(itineraryDataStr) : null;
       const response = await fetch(
-        "http://127.0.0.1:8000/hotel",
+        "https://reel2real.onrender.com/hotel",
         {
           method: "POST",
           headers: {

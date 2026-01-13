@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { LocationSearch } from "./LocationSearch";
@@ -24,6 +24,7 @@ import {
   Plus,
   Calendar as CalendarIcon,
   Users,
+  Loader2,
 } from "lucide-react";
 
 function getNextWeekend(): DateRange {
@@ -56,10 +57,28 @@ export const TripForm = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedVibes, setSelectedVibes] = useState<string[]>([]);
   const [budget, setBudget] = useState([50]);
-
   const [people, setPeople] = useState(2);
-
   const [dateRange, setDateRange] = useState<DateRange>(() => getNextWeekend());
+  const [isBackendReady, setIsBackendReady] = useState(false);
+  const [backendError, setBackendError] = useState(false);
+
+  useEffect(() => {
+    const checkBackend = async () => {
+      try {
+        const response = await fetch("https://reel2real.onrender.com/");
+        if (response.ok) {
+          setIsBackendReady(true);
+        } else {
+          setBackendError(true);
+        }
+      } catch (error) {
+        console.error("Backend not ready:", error);
+        setBackendError(true);
+      }
+    };
+
+    checkBackend();
+  }, []);
 
   const handleSearchSubmit = () => {
     if (location.trim()) setIsExpanded(true);
@@ -88,7 +107,7 @@ export const TripForm = () => {
     navigate("/loading");
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/confirm", {
+      const response = await fetch("https://reel2real.onrender.com/confirm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -123,138 +142,169 @@ export const TripForm = () => {
           isExpanded ? "max-w-3xl" : ""
         }`}
       >
-        <LocationSearch
-          value={location}
-          onChange={setLocation}
-          onSubmit={handleSearchSubmit}
-          placeholder="Where do you want to explore?"
-        />
-
-        <AnimatePresence>
-          {!isExpanded && location.trim() && (
-
-            <motion.div className="mt-4">
-              <Button
-                onClick={handleSearchSubmit}
-                size="lg"
-                className="text-sm md:text-base text-white font-medium leading-relaxed max-w-xl">
-                Let's Go <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <AnimatePresence>
-          {isExpanded && (
-            <motion.div className="space-y-8 mt-8">
-              {/* Vibes */}
-              <div className="space-y-4">
-                
-                <h3 className="text-lg font-semibold">What's your vibe?</h3>
-                <div className="flex flex-wrap gap-2">
-                  {vibes.map((vibe) => (
-                    <VibeChip
-                      key={vibe.id}
-                      label={vibe.label}
-                      icon={vibe.icon}
-                      selected={selectedVibes.includes(vibe.id)}
-                      onClick={() => toggleVibe(vibe.id)}
-                    />
-                  ))}
-                </div>
+        {!isBackendReady ? (
+          <div className="flex items-center justify-between gap-4 p-4 bg-white/5 rounded-2xl border border-white/10">
+            <div className="flex items-center gap-3">
+              <motion.div
+                animate={{ rotate: 360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              >
+                <Loader2 className="h-5 w-5 text-primary" />
+              </motion.div>
+              <div>
+                <p className="font-medium text-sm">
+                  {backendError ? "Connection Issue" : "Backend Waking Up"}
+                </p>
               </div>
+            </div>
+            {backendError && (
+              <Button
+                onClick={() => window.location.reload()}
+                variant="outline"
+                size="sm"
+                className="text-xs"
+              >
+                Retry
+              </Button>
+            )}
+          </div>
+        ) : (
+          <>
+            <LocationSearch
+              value={location}
+              onChange={setLocation}
+              onSubmit={handleSearchSubmit}
+              placeholder="Where do you want to explore?"
+            />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">When are you going?</h3>
+            <AnimatePresence>
+              {!isExpanded && location.trim() && (
+                <motion.div className="mt-4">
+                  <Button
+                    onClick={handleSearchSubmit}
+                    size="lg"
+                    className="text-sm md:text-base text-white font-medium leading-relaxed max-w-xl"
+                  >
+                    Let's Go <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start text-left font-sans rounded-xl"
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {dateRange?.from && dateRange?.to ? (
-                          <>
-                            {format(dateRange.from, "MMM d, yyyy")} –{" "}
-                            {format(dateRange.to, "MMM d, yyyy")}
-                          </>
-                        ) : (
-                          <span className="text-muted-foreground">
-                            Pick your travel dates
-                          </span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
+            <AnimatePresence>
+              {isExpanded && (
+                <motion.div className="space-y-8 mt-8">
+                  {/* Vibes */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">What's your vibe?</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {vibes.map((vibe) => (
+                        <VibeChip
+                          key={vibe.id}
+                          label={vibe.label}
+                          icon={vibe.icon}
+                          selected={selectedVibes.includes(vibe.id)}
+                          onClick={() => toggleVibe(vibe.id)}
+                        />
+                      ))}
+                    </div>
+                  </div>
 
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="range"
-                        selected={dateRange}
-                        onSelect={setDateRange}
-                        defaultMonth={dateRange?.from}
-                        disabled={(date) => date < new Date()}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold">
+                        When are you going?
+                      </h3>
 
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    How many people?
-                  </h3>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="w-full justify-start text-left font-sans rounded-xl"
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {dateRange?.from && dateRange?.to ? (
+                              <>
+                                {format(dateRange.from, "MMM d, yyyy")} –{" "}
+                                {format(dateRange.to, "MMM d, yyyy")}
+                              </>
+                            ) : (
+                              <span className="text-muted-foreground">
+                                Pick your travel dates
+                              </span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
 
-                  <div className="flex items-center justify-center gap-6">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setPeople(Math.max(1, people - 1))}
-                      className="h-12 w-12 rounded-full"
-                    >
-                      <Minus className="h-5 w-5" />
-                    </Button>
-
-                    <div className="text-center">
-                      <span className="text-5xl font-bold text-primary">
-                        {people}
-                      </span>
-                      <p className="text-muted-foreground">
-                        {people === 1 ? "person" : "people"}
-                      </p>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="range"
+                            selected={dateRange}
+                            onSelect={setDateRange}
+                            defaultMonth={dateRange?.from}
+                            disabled={(date) => date < new Date()}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
                     </div>
 
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setPeople(Math.min(12, people + 1))}
-                      className="h-12 w-12 rounded-full"
-                    >
-                      <Plus className="h-5 w-5" />
-                    </Button>
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-semibold flex items-center gap-2">
+                        <Users className="h-5 w-5" />
+                        How many people?
+                      </h3>
+
+                      <div className="flex items-center justify-center gap-6">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => setPeople(Math.max(1, people - 1))}
+                          className="h-12 w-12 rounded-full"
+                        >
+                          <Minus className="h-5 w-5" />
+                        </Button>
+
+                        <div className="text-center">
+                          <span className="text-5xl font-bold text-primary">
+                            {people}
+                          </span>
+                          <p className="text-muted-foreground">
+                            {people === 1 ? "person" : "people"}
+                          </p>
+                        </div>
+
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => setPeople(Math.min(12, people + 1))}
+                          className="h-12 w-12 rounded-full"
+                        >
+                          <Plus className="h-5 w-5" />
+                        </Button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
 
-              <BudgetSlider value={budget} onChange={setBudget} />
+                  <BudgetSlider value={budget} onChange={setBudget} />
 
-              <Button
-                onClick={handlePlanTrip}
-                size="lg"
-                disabled={
-                  selectedVibes.length === 0 ||
-                  !dateRange?.from ||
-                  !dateRange?.to
-                }
-                className="w-full rounded-xl text-lg py-6 opacity-70"
-              >
-                Create My Adventure
-              </Button>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                  <Button
+                    onClick={handlePlanTrip}
+                    size="lg"
+                    disabled={
+                      selectedVibes.length === 0 ||
+                      !dateRange?.from ||
+                      !dateRange?.to
+                    }
+                    className="w-full rounded-xl text-lg py-6 opacity-70"
+                  >
+                    Create My Adventure
+                  </Button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </>
+        )}
       </motion.div>
     </motion.div>
   );
