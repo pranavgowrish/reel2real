@@ -4,7 +4,6 @@ bs4
 duckduckgo-search
 ddgs
 spacy>=3.7,<3.9
-en-core-web-sm==3.7.1
 uvicorn
 twelvelabs
 requests
