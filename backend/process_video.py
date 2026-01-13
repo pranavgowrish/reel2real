@@ -141,7 +141,7 @@ def fully_process(url: str, destination: str) -> List[str]:
         # 4: Wait for Task
         print("4: Wait for Indexing")
         try:
-            video_id = wait_for_task(task_info["task_id"], timeout=30)
+            video_id = wait_for_task(task_info["task_id"], timeout=15)
             print(f"Video indexed: {video_id}")
         except Exception as e:
             print(f"Failed: {e}")

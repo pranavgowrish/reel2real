@@ -24,7 +24,6 @@ def download_videos(urls: List[str], output_dir: str = "videos") -> List[str]:
     
     Raises:
         ImportError: If yt-dlp is not installed
-        RuntimeError: If download fails
     """
     try:
         import yt_dlp
@@ -93,6 +92,7 @@ def download_videos(urls: List[str], output_dir: str = "videos") -> List[str]:
         if "youtube.com" in url or "youtu.be" in url:
             platform = "youtube"
             print("   Platform: YouTube")
+        
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 # Extract info first to get the filename
@@ -141,11 +141,17 @@ def download_videos(urls: List[str], output_dir: str = "videos") -> List[str]:
             print(f"    Error downloading {url}: {error_msg}")
             
             # Provide helpful error messages
-            if "login" in error_msg.lower() or "authentication" in error_msg.lower():
-                print("\n    TIP: This video may require authentication.")
-                print("      Try using cookies from your browser.")
+            if "login" in error_msg.lower() or "authentication" in error_msg.lower() or "bot" in error_msg.lower():
+                print("\n    TIP: This video may require authentication or YouTube is blocking the request.")
+                print("      Skipping this video and continuing...")
             
-            raise RuntimeError(f"Failed to download video from {url}: {error_msg}")
+            # CHANGED: Don't raise the error, just continue to next video
+            print(f"    Skipping video {url} due to download failure")
+            continue  # Skip to next video instead of crashing
+    
+    # Return whatever videos we successfully downloaded (may be empty list)
+    if not downloaded_files:
+        print("\n Warning: No videos were successfully downloaded")
     
     return downloaded_files
 

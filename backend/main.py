@@ -7,6 +7,7 @@ from ddgs import DDGS
 import json
 import itinerary_generator
 import re
+import os
 
 import deeplinking
 
@@ -22,13 +23,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-from dotenv import load_dotenv
-load_dotenv()
 
 # =========================
 # ENDPOINT 
 # =========================
-client = genai.Client(api_key="AIzaSyCipIj_9yjHcOLkx_nEIYnNdy1fVv-ymDc")
+api_key = os.getenv("GEMINI_API_KEY")
+client = genai.Client(api_key="AIzaSyAuJL1WyKPAdXomlu9dI8GzeUduf_uzsdg")
 
 
 
@@ -274,9 +274,10 @@ async def gemini_confirm(request: Request):
 
 
 def get_image_url(poi):
-    with DDGS() as ddgs:
-        for r in ddgs.images(poi, max_results=1):
-            return r["image"]
+    # with DDGS() as ddgs:
+    #     for r in ddgs.images(poi, max_results=1):
+    #         return r["image"]
+    return "/hero-travel.jpg"
     return None
 
 
