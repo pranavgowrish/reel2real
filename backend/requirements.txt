@@ -3,7 +3,8 @@ requests
 bs4
 duckduckgo-search
 ddgs
-spacy
+spacy>=3.0.0
+en-core-web-sm
 uvicorn
 twelvelabs
 requests
