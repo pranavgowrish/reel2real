@@ -111,16 +111,16 @@ const SearchingAnimation = () => {
           transition={{ delay: 0.5 }}
         >
           <div>
-            <div className="text-2xl font-bold text-primary">8+</div>
+            <div className="text-2xl font-bold text-primary">100+</div>
             <div className="text-xs text-muted-foreground">Sources</div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-primary">1000s</div>
+            <div className="text-2xl font-bold text-primary">500s</div>
             <div className="text-xs text-muted-foreground">Activities</div>
           </div>
           <div>
             <div className="text-2xl font-bold text-primary">AI</div>
-            <div className="text-xs text-muted-foreground">Powered</div>
+            <div className="text-xs text-muted-foreground">Refined</div>
           </div>
         </motion.div>
       </div>
