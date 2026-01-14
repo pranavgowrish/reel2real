@@ -65,7 +65,7 @@ export const TripForm = () => {
   useEffect(() => {
     const checkBackend = async () => {
       try {
-        const response = await fetch("https://reel2real.onrender.com/");
+        const response = await fetch("https://reelreal-backend.hf.space/");
         if (response.ok) {
           setIsBackendReady(true);
         } else {
@@ -107,7 +107,7 @@ export const TripForm = () => {
     navigate("/loading");
 
     try {
-      const response = await fetch("https://reel2real.onrender.com/confirm", {
+      const response = await fetch("https://reelreal-backend.hf.space/confirm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

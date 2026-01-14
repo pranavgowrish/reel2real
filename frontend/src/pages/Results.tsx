@@ -71,7 +71,7 @@ const Results = () => {
       const itineraryDataStr = localStorage.getItem("itineraryData");
       const itineraryDataObj = itineraryDataStr ? JSON.parse(itineraryDataStr) : null;
       const response = await fetch(
-        "https://reel2real.onrender.com/hotel",
+        "https://reelreal-backend.hf.space/hotel",
         {
           method: "POST",
           headers: {
@@ -103,27 +103,33 @@ console.log(lastLocationAddress);
     }
   };
 
-  useEffect(() => {
-    try {
-      const storedTripData = localStorage.getItem("tripData");
-      if (storedTripData) {
-        setTripData(JSON.parse(storedTripData));
-      }
-
-      const storedItineraryData = localStorage.getItem("itineraryData");
-      if (storedItineraryData) {
-        setItineraryData(JSON.parse(storedItineraryData));
-      } else {
-        console.error("No itinerary data found");
-        navigate("/");
-      }
-    } catch (error) {
-      console.error("Error loading data from localStorage:", error);
-      navigate("/");
-    } finally {
-      setLoading(false);
+useEffect(() => {
+  try {
+    const storedTripData = localStorage.getItem("tripData");
+    if (storedTripData) {
+      setTripData(JSON.parse(storedTripData));
     }
-  }, [navigate]);
+
+    const storedItineraryData = localStorage.getItem("itineraryData");
+    if (storedItineraryData) {
+      setItineraryData(JSON.parse(storedItineraryData));
+    } else {
+      console.error("No itinerary data found");
+      navigate("/");
+    }
+
+    // Add this to load hotel data
+    const storedHotelData = localStorage.getItem("hotel");
+    if (storedHotelData) {
+      setHotelData(JSON.parse(storedHotelData));
+    }
+  } catch (error) {
+    console.error("Error loading data from localStorage:", error);
+    navigate("/");
+  } finally {
+    setLoading(false);
+  }
+}, [navigate]);
 
   const itineraryItems = itineraryData?.itinerary || [];
 
@@ -292,17 +298,20 @@ console.log(lastLocationAddress);
                     </>
                   )}
 
-                  {itineraryData.itinerary.map((item, index) => (
-                    <ItineraryCard
-                      key={item.id}
-                      item={item}
-                      index={hotelData ? index + 1 : index}
-                      isLast={
-                        !hotelData &&
-                        index === itineraryData.itinerary.length - 1
-                      }
-                    />
-                  ))}
+{itineraryData.itinerary.map((item, index) => (
+  <ItineraryCard
+    key={item.id}
+    item={{
+      ...item,
+      websiteUrl: `https://www.google.com/search?btnI=I&q=${encodeURIComponent(item.name+item.address + ' booking')}`
+    }}
+    index={hotelData ? index + 1 : index}
+    isLast={
+      !hotelData &&
+      index === itineraryData.itinerary.length - 1
+    }
+  />
+))}
 
                   {hotelData && (
                     <ItineraryCard

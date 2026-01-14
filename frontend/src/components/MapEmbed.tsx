@@ -1,4 +1,5 @@
 import { MapPin } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface MapEmbedProps {
   origin: { lat: number; lng: number; address?: string };
@@ -7,15 +8,52 @@ interface MapEmbedProps {
 }
 
 export const MapEmbed = ({ origin, destination, waypoints }: MapEmbedProps) => {
-  const originStr = origin.address 
-    ? encodeURIComponent(origin.address)
-    : `${origin.lat},${origin.lng}`;
+  const [displayOrigin, setDisplayOrigin] = useState(origin);
+  const [displayDestination, setDisplayDestination] = useState(destination);
+  const [displayWaypoints, setDisplayWaypoints] = useState(waypoints);
+
+  useEffect(() => {
+    const hotelData = localStorage.getItem('hotel');
+    if (hotelData) {
+      try {
+        const hotel = JSON.parse(hotelData);
+        if (hotel.name) {
+          // Add hotel name to origin address
+          setDisplayOrigin({
+            ...origin,
+            address: origin.address 
+              ? `${hotel.name}, ${origin.address}` 
+              : hotel.name
+          });
+          
+          // Move current destination to waypoints and make hotel the new destination
+          setDisplayWaypoints([
+            ...waypoints,
+            destination // Add original destination as last waypoint
+          ]);
+
+          // Hotel becomes the final destination
+          setDisplayDestination({
+            lat: origin.lat, // Use hotel coordinates if available
+            lng: origin.lng,
+            address: hotel.name
+          });
+        }
+      } catch (error) {
+        console.error('Error parsing hotel data:', error);
+      }
+    }
+  }, [origin, destination, waypoints]);
+
+  const originStr = displayOrigin.address 
+    ? encodeURIComponent(displayOrigin.address)
+    : `${displayOrigin.lat},${displayOrigin.lng}`;
   
-  const destinationStr = destination.address
-    ? encodeURIComponent(destination.address)
-    : `${destination.lat},${destination.lng}`;
+  const destinationStr = displayDestination.address
+    ? encodeURIComponent(displayDestination.address)
+    : `${displayDestination.lat},${displayDestination.lng}`;
   
-  const waypointsStr = waypoints
+  const waypointsStr = displayWaypoints
     .map((wp) => wp.address ? encodeURIComponent(wp.address) : `${wp.lat},${wp.lng}`)
     .join("|");
   

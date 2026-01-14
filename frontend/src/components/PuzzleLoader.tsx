@@ -118,7 +118,7 @@ export const PuzzleLoader = ({ cityImage, venues, phase, onConfirm }: PuzzleLoad
     let data: any = null;
     try {
 
-      const response = await fetch("https://reel2real.onrender.com/itin", {
+      const response = await fetch("https://reelreal-backend.hf.space/itin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
